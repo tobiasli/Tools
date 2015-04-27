@@ -1,0 +1,443 @@
+﻿# Handleliste for Margrethe og Tobias.
+#
+# Listen inneholder oppskrifter og genererer en handleliste utifra hva vi velger
+# å ha til middag.
+#
+# Det er bare å legge til så mange oppskrifter man vil.
+#
+# Oppskrifter kategoriseres utifra ingrediensene de inneholder. For å angi en
+# kategori for en ingrediens, legg til et komma og navnet på kategorien (ett
+# ord). Eksempel:
+#   1 kg lakefilet
+#   400g bacon
+---
+
+oppskrifter:
+        Chilli con Carne:
+            kategorier: kjøtt, gryte
+            tid: 45
+            oppskrift: Stek løk, hvitløk blankt. Ha i kjøttdeig og stek til kjøttdeig er gjennomstekt. Ha i paprika og tomatpure, stek litt videre. Ha i hakket tomat, bønner og krydder. Stek i 30 minutter. Salat ved siden av.
+            antall personer i oppskrift: 2
+            ingredienser:
+                -   400g kjøttdeig
+                -   2 bokser hakket tomat
+                -   1 boks hvite bønner
+                -   1 boks chillibønner (kidneybønner med chillisaus)
+                -   2 fedd hvitløk
+                -   1/2 hjertesalat
+                -   2 tomater
+                -   1/2 boks mais
+                -   1/2 agurk
+                -   kayennepepper
+                -   salt
+                -   pepper
+                -   1/3 boks rømme
+                -   1 avokado
+                -   salat
+        Lakselomper:
+            kategorier: fisk
+            tid: 15
+            oppskrift: Stek fisken med litt salt og pepper. Finsnitt kål og bland med gresk yoghurt. Tilsett finhakket hvitløk og smak til med kayennepepper, salt og pepper. Spis som taco.
+            antall personer i oppskrift: 2
+            ingredienser:
+                -   2 skinnfrie laksefileter
+                -   1 pakke lomper
+                -   3 tomater, halve skiver
+                -   1/3 kål, strimlet
+                -   1/2 boks gresk yoghurt
+                -   2 fedd hvitløk
+                -   kayennepepper
+                -   salt
+                -   pepper
+        Tunfisksalat:
+            kategorier: salat, fisk
+            tid: 20
+            oppskrift: Bland alle ingredienser
+            antall personer i oppskrift: 2
+            ingredienser:
+                -   1 hjertesalat
+                -   3 tomater
+                -   100g pasta penne, pasta
+                -   3 spiseskjeer pesto
+                -   1/2 agurk
+                -   2 bokser tunfisk, fisk
+        Enkel wok:
+            kategorier: kjøtt
+            tid: 20
+            oppskrift: Stek kjøtt, legg til side. Stek grønnsaker. Ha i kjøtt og saus. Bland inn nudlene og stek i et par minutter før servering.
+            antall personer i oppskrift: 2
+            ingredienser:
+                -   1 pakke strimlet svinekjøtt
+                -   1 pakke frosne wokgrønnsaker
+                -   1 pakke woksaus
+                -   2 porsjoner nudler
+        Carbonara:
+            kategorier: kjøtt, pasta
+            tid: 10
+            oppskrift: Kok pasta. Stek Bacon. Bland egg, rømme, ost og krydder.
+            antall personer i oppskrift: 1
+            ingredienser:
+                -   60g spaghetti
+                -   50 g bacon
+                -   1 egg
+                -   2 ss rømme
+                -   ost
+        Fiskesuppe med kokos:
+            kategorier: fisk, suppe
+            tid: 35
+            oppskrift: Kok risen etter anvisning på pakken.Kutt løk og paprika i terninger og fres sammen med finhakket hvitløk og ingefær i en dyp gryte med solsikkeolje. Tilsett vann og kokosmelk. Kok opp og la det småkoke til det så smått begynner å tykne. Smak til med kajennepepper og salt og kok opp.Vend inn laksefilet skåret i store terninger. La fisken trekke i gryten til laksen er knapt gjennomkokt.Smak til med litt limesaft og servér med kokt ris.
+            antall personer i oppskrift: 4
+            ingredienser:
+                -   4 laksefileter
+                -   1 løk
+                -   2 paprika
+                -   2 fedd hvitløk
+                -   1 ts fersk ingefær
+                -   2 ss solsikkeolje
+                -   3 dl vann
+                -   1 boks kokosmelk
+                -   1/2 ts kajennepepper
+                -   salt
+                -   1 lime
+                -   4 dl middagsris
+        Svinekoteletter med bresert rosenkål:
+            kategorier: kjøtt
+            tid: 45
+            oppskrift: Kok potetene og la rosenkålen tine noen minutter på kjøkkenbenken.Krydre kotelettene med salt, pepper og rosmarin. Stek dem brune i en panne med olivenplje i ca 3 minutter på hver side.Rosenkål:Ha smør og olje i en panne og fres rosenkål, finhakket løk og skivet hvitløk med pepper. Tilsett buljong og la det trekke i ca 10 minutter. Smak til med hvitvinseddik og evt. litt salt.Server kotelettene med bresert rosenkål og poteter.
+            antall personer i oppskrift: 4
+            ingredienser:
+                -   4 svinekoteletter
+                -   salt
+                -   pepper
+                -   rosmarin
+                -   olivenolje
+                -   600g rosenkål (frossen)
+                -   2 ss smør
+                -   2 ss olivenolje
+                -   1 løk
+                -   2 fedd hvitløk
+                -   3 dl hønsebuljong
+                -   1 ss hvitvinseddik
+                -   600g poteter
+        Kyllingform med eplejuice:
+            kategorier: kjøtt
+            tid: 30
+            oppskrift: http://trinesmatblogg.no/2013/01/08/kyllingform-med-paprika-og-tomat/
+            antall personer i oppskrift: 2
+            ingredienser:
+                -   4 kyllingfileter
+                -   salt og pepper
+                -   4-5 sjalottløk, i båter
+                -   2 fedd hvitløk
+                -   1 rød paprika, i grove biter
+                -   1 gul paprika, i grove biter
+                -   1 dl hvitvin (kan eventuelt erstattes med litt eplejuice)
+                -   1 boks hermetiske cherrytomater
+                -   1-2 ts kyllingfond (eller 1/2 kyllingbuljongterning)
+                -   litt sukker
+                -   salt og pepper
+                -   frisk basilikum eller timian
+                -   ris, tilberedt etter anvisningen på pakken
+                -   brød
+        Glasert laks:
+            kategorier: fisk
+            tid: 30
+            oppskrift: |
+                Bland brunt ukker, kajennepepper, karri, salt og pepper. Fordel
+                blandingen på toppen av laksefiletene.Varm pannen godt, ha i
+                litt solsikkeolje og stek fisken med kryddersiden ned til det
+                danner segen mørk skrope. Ha soyasaus i pannen og rist pannen
+                lett for å fordele sausen og trekk pannen til side. Snu fisken
+                og trekk i noen minutter.Finhakk chilien og wok den sammen med
+                resten av grønnsakene. Smak til med østerssaus, salt og pepper.
+                Servér laksen med wokede grlnnsaker og sitronris.
+            antall personer i oppskrift: 2
+            ingredienser:
+                -   300g laksefilet
+                -   1/2 ts brunt sukker
+                -   1/2 ts kajennepepper
+                -   1 ts karri
+                -   salt
+                -   pepper
+                -   1 ss soyaolje
+                -   1 pose wokgrønnsaker
+                -   1/2 rød chilipepper
+                -   240g spaghetti
+                -   soyasaus
+        Tomatsuppe:
+            kategorier: vegetar
+            tid: 30
+            oppskrift: http://trinesmatblogg.no/2013/12/10/hjemmelaget-tomatsuppe-2/
+            antall personer i oppskrift: 2
+            ingredienser:
+                -   2 sjalottløk, finhakket
+                -   2-3 fedd hvitløk, finhakket
+                -   1/2 rød chilipepper, finhakket
+                -   2 ss tomatpuré
+                -   2 bokser hakkede tomater
+                -   7.5 dl grønnsakskraft
+                -   eventuelt litt sukker
+                -   salt og pepper
+                -   2 egg, delt i to på langs
+        Taco:
+            kategorier: kjøtt
+            tid: 30
+            oppskrift: Det er taco, hva tror du a?
+            antall personer i oppskrift: 2
+            ingredienser:
+                -   2 tomater
+                -   1/2 løk
+                -   1/2 hjertesalat
+                -   1/2 pakke tortillas
+                -   1 avokado
+                -   1/3 boks rømme
+                -   1/2 glass tacosaus
+                -   1 pakke karbonadedeig
+                -   tacokrydder
+                -   1/4 agurk
+                -   revet ost
+        Fiskeburgere:
+            kategorier: fisk
+            tid: 10
+            oppskrift: Steke fiskekaker og lage hamburger med resten.
+            antall personer i oppskrift: 2
+            ingredienser:
+                -   2 tomater
+                -   1/2 pakke hamburgerbrød
+                -   1/2 agurk
+                -   1/2 hjertesalat
+                -   sennep
+                -   ketsjup
+        Spaghetti med tomatsaus:
+            kategorier: kjøtt
+            tid: 30
+            oppskrift: |
+                Stek kjøtt, sett til side. Stek sjampignong, sett til side.
+                Stek løk til myk, tilsett hvitløk og gulrøtter. Ha i tomatpuré
+                og stek i noen minutter. Ha i hakkede tomater, kjøttet og
+                soppen. Smak til med krydder. Rør om og la koke i 10 minutter.
+                Mens det koker, kok opp pasta. Ferdig. Revet parmesan til de
+                som vil ha.
+            antall personer i oppskrift: 2
+            ingredienser:
+                -   1 pakke karbonadedeig
+                -   3 sjampinjong
+                -   1/2 løk, finhakket
+                -   1/2 paprika, biter
+                -   1 fedd hvitløk, finhakket
+                -   3/2 gulrot, skiver
+                -   3 ss tomatpuré
+                -   1 boks hakket tomat
+                -   basilikum
+                -   salt
+                -   papper
+                -   2 dråper tabasco
+                -   120 g spaghetti
+                -   parmesan
+        Koteletter med potetmos:
+            kategorier: kjøtt
+            tid: 40
+            oppskrift: Skrell potene og kutt i biter. Kok potene til de er møre. Kutt løken i halve skiver. Stek kotelettene i olje sammen med løken og litt salt og pepper. Kok grønnsakene. Når alt er ferdig, la kjøttet vile og kok saus på kraften i stekepanna. Mos potetene sammen med melken, smøret, muskatten og litt salt og pepper.
+            antall personer i oppskrift: 2
+            ingredienser:
+                -   2 koteletter
+                -   1 løk
+                -   200 g poteter
+                -   1 pose frosne grønnsaker.
+                -   1 dl melk
+                -   1 ss smør
+                -   1 ts malt muskattnøtt
+                -   salt
+                -   pepper
+        Pizza med spekeskinke og blåmuggost:
+            kategorier: digg
+            tid: 60 minutter
+            oppskrift: |
+                Lag pizzadeig av melet, oljen, gjæret, vannet og litt salt. Kna
+                godt, og la heve så lenge du gidder. Finhakk hvitløket og stek
+                raskt før du har i tomatpuréen og steker det i ett minutt. Ha i
+                boksen med hakkede tomater og eddiken. Smak til med salt,
+                pepper, tørket basilikum og litt sukker. Kjevle ut deigen når
+                den er klar og ha sausen tynt over. Dersom det er saus igjen
+                kan denne være tilbehør til slutt. Fordel blåmuggosten gjevnt
+                over pizzaen, og spe på med litt annen gul ost dersom det blir
+                litt lite. Stek i ovnen på bånn spiker til osten har fått litt
+                farge. Ta den ut, og legg over biter med spekeskinke. Når
+                pizzaen står ovnen, finhakk litt hvitløk, og lag hvitløkdressing
+                sammen med rømmen, salt, pepper og litt sitronsaft. Server med
+                ruccola , hvitløksdressing og det som eventuelt måtte være igjen
+                av pizzasausen.
+            antall personer i oppskrift: 2
+            ingredienser:
+                -   200g siktet hvetemel
+                -   1 pakke tørrgjær
+                -   2 ss olje
+                -   salt
+                -   1 dl vann (kanskje mer)
+                -   1 pakke Blå Castello (blåmuggost)
+                -   1 pakke Stranda spekeskinke
+                -   1 boks hakket tomat
+                -   2 ss tomatpuré
+                -   2 fedd hvitløk
+                -   1/2 boks rømme
+                -   1 ts eddik
+                -   salt
+                -   pepper
+        Pizza med kjøttboller:
+            kategorier: digg
+            tid: 60 minutter
+            oppskrift: |
+                Lag pizzadeig av melet, oljen, gjæret, vannet og littsalt. Kna
+                godt, og la heve så lenge du gidder. Finhakk hvitløket og stek
+                raskt før du har i tomatpuréen og steker det i ett minutt. Ha i
+                boksen med hakkede tomater og eddiken. Smak til med salt,
+                pepper, tørket basilikum og litt sukker. Kjevle ut deigen når
+                den er klar og ha sausen tynt over. Dersom det er saus igjen
+                kan denne være tilbehør til slutt. Skjær osten i skiver og
+                fordel den gjevnt utover pizzaen. Legg sjapignong og paprika
+                utover. Lag nå kjøttbollene: Ha karbonadedeigen i en bolle, og
+                tillsett kayennepepper, salt, pepper og den veldig finhakkede
+                løken. Kna godt. Legg biter av kjøttdeigen oppå pizzaen i
+                valnøttstore biter. Stek midt i ovnen i 10-20 minutter på full
+                spiker. Når pizzaen står ovnen, finhakk litt hvitløk, og lag
+                hvitløkdressing sammen med rømmen, salt, pepper og litt
+                sitronsaft. Server med hvitløksdressing og det som eventuelt
+                måtte være igjen av pizzasausen.
+            antall personer i oppskrift: 2
+            ingredienser:
+                -   200g siktet hvetemel
+                -   1 pakke tørrgjær
+                -   2 ss olje
+                -   salt
+                -   1 dl vann (kanskje mer)
+                -   1/2 løk
+                -   1 paprika
+                -   3 sjampinjong
+                -   1 pakke karbonadedeig
+                -   1 ts kayennepepper
+                -   salt
+                -   peppers
+                -   1 boks hakket tomat
+                -   2 ss tomatpuré
+                -   2 fedd hvitløk
+                -   1/2 boks rømme
+                -   1 ts eddik
+                -   salt
+                -   pepper
+        Wienerpølser:
+            kategorier: rask
+            tid: 5 minutter
+            oppskrift: Kok pølser, server med pølsebrød, lomper, potetsalat, ketsjup og sennep.
+            antall personer i oppskrift: 2
+            ingredienser:
+                -   1 pakke wienerpølser
+                -   8 pølsebrød
+                -   5 lomper
+                -   ketsjup
+                -   sennep
+                -   potetsalt
+        SPAGETTI MED CHILIREKER, PAPRIKA OG SITRON:
+            kategorier: pasta
+            tid: 15
+            oppskrift: http://trinesmatblogg.no/2014/02/26/spagetti-med-chilireker-paprika-og-sitron/
+            antall personer i oppskrift: 2
+            ingredienser:
+                -   4 porsjoner spagetti, tilberedt etter anvisningen på pakken
+                -   ca. 300 g rensede reker
+                -   1/2 hvitløk, finhakket
+                -   3/4 rød chili (uten frø), finhakket
+                -   1 rød paprika, i små terninger
+                -   1 (økologisk) sitron, revet skall
+                -   olivenolje til steking
+                -   en neve ruccula, (veldig) grovt hakket
+                -   1.5 dl av pastavannet
+                -   salt og pepper
+                -   parmesan, revet
+        HJEMMELAGET TOMATSUPPE:
+            kategorier: suppe, vegetar
+            tid: 30
+            oppskrift: http://trinesmatblogg.no/2013/12/10/hjemmelaget-tomatsuppe-2/
+            antall personer i oppskrift: 2
+            ingredienser:
+                -   2 sjalottløk, finhakket
+                -   3 fedd hvitløk, finhakket
+                -   ca. ½ rød chili, finhakket
+                -   2 ss tomatpurè (jeg brukte Mutti av soltørkede tomater)
+                -   2 bokser Mutti hermetiske tomater
+                -   7,5 dl grønnsaks- eller kyllingkraft
+                -   eventuelt litt sukker
+                -   salt og pepper
+                -   2 egg, delt i to på langs
+        PANNESTEKT TORSK MED BACONSJY, ROSENKÅL OG VALNØTTER:
+            kategorier: fisk
+            tid: 65
+            oppskrift: http://trinesmatblogg.no/2014/12/09/pannestekt-torsk-med-baconsjy-rosenkal-og-valnotter/
+            antall personer i oppskrift: 2
+            ingredienser:
+                -   600 g torskeloin fra Norway Seafoods
+                -   2 ss nøytral olje
+                -   1 ss smør
+                -   2 hvitløkfedd, knust
+                -   salt og pepper
+                -   ca. 400 g poteter, skrelt og i biter
+                -   1 blomkål, skrelt og i biter
+                -   melk
+                -   smør
+                -   salt og pepper
+                -   200 g bacon, i terninger
+                -   100 g smør
+                -   1 liten sjalottløk, finhakket
+                -   ca. 1 1/2 ss soyasaus
+                -   2 ss sitronsaft (smak til)
+                -   2 ss valnøttkjerner, grovt hakket
+                -   gressløk, finsnittet
+                -   ca. 250 g rosenkål
+                -   litt vann
+                -   1 ss smør
+                -   salt
+        SALSICCA OG OVNSBAKTE ROTGRØNNSAKER:
+            kategorier: pølse
+            tid: 30
+            oppskrift: http://trinesmatblogg.no/2014/09/24/salsicca-og-ovnsbakte-rotgronnsaker/
+            antall personer i oppskrift: 2
+            ingredienser:
+                -   Salsicca eller andre gode pølser
+                -   rotgrønnsaker, i staver
+                -   rødløk, i båter
+                -   olivenolje
+                -   sitron
+                -   salt og pepper
+                -   frisk timian
+                -   sennep
+        CHILIMARINERT ANANAS:
+            kategorier: dessert
+            tid: 25
+            oppskrift: http://trinesmatblogg.no/2015/01/03/chilimarinert-ananas/
+            antall personer i oppskrift: 3
+            ingredienser:
+                -   1 ananas, ca. 1 kg, i terninger
+                -   1 vaniljestang
+                -   3/4 dl vann
+                -   100 g sukker
+                -   3 cm rød chili uten frø, finhakket
+        VERDENS BESTE FISKESUPPE:
+            kategorier: suppe
+            tid: 45
+            oppskrift: http://trinesmatblogg.no/2012/09/11/verdens-beste-fiskesuppe-versjon-2-0/
+            antall personer i oppskrift: 2
+            ingredienser:
+                -   1 løk, finhakket
+                -   1,5 dl hvitvin
+                -   1 dl kremfløte
+                -   100 gram smør
+                -   400 gram assortert fisk, feks torsk, laks eller steinbit, i terninger ca 2 x 2 cm
+                -   150 gram rensede reker
+                -   1 gulrot, i staver
+                -   1 fennikel, i strimler
+                -   1 liten bit sellerirot, i staver
+                -   1 liten purre, i strimler
+                -   7 dl god fiskekraft
+                -   2 ss hakket frisk basilikum
+                -   2 ss hakket frisk gressløk
+                -   2 ss hakket frisk persille
+                -   salt og nykvernet hvit pepper

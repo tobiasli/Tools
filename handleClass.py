@@ -649,5 +649,5 @@ if __name__ == '__main__':
     ukeplanSti = os.path.join(path,'ukeplan.txt')
     kokken.lesUkeplan(ukeplanSti)
     kokken.printOppskriftForslag()
-##    kokken.leggOppskrifterTilHandleliste()
-##    kokken.sendTilWunderlist()
+    kokken.leggOppskrifterTilHandleliste()
+    kokken.sendTilWunderlist()

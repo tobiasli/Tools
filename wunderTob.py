@@ -108,8 +108,8 @@ def sendToWunderlist(destinationList,tasks,loginInfo = login):
         if 'addTask' in p.get_attribute('class'):
             for t in tasks:
                 pass
-                #p.send_keys(t)
-                #p.send_keys(Keys.RETURN)
+                p.send_keys(t)
+                p.send_keys(Keys.RETURN)
 
     print 5
 

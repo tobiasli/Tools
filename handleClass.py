@@ -217,7 +217,8 @@ class oppskrift(object):
             self.ingredienser.leggTil(ingrediens(ing,self))
 
     def tolkKategorier(self,kategorier):
-        kategorier = kategorier.split(',')
+        if kategorier:
+            kategorier = kategorier.split(',')
         return kategorier
 
 class ingrediensListe(object):

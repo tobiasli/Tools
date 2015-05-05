@@ -14,7 +14,7 @@ from __future__ import unicode_literals
 import urllib2
 import tregex
 
-path = r'http://trinesmatblogg.no/2012/09/11/verdens-beste-fiskesuppe-versjon-2-0/'
+path = r'http://trinesmatblogg.no/2014/09/30/kylling-med-indisk-linse-og-spinatsalat/'
 
 req = urllib2.Request(path)
 a = urllib2.urlopen(req)

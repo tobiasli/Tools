@@ -1,10 +1,12 @@
 # Tools
 Suite of tools for making my Python-day easier.
 
-== arctools ==
+<b>arctools</b>
+
 Wrapper for making my gis-day easier. Two primary functions:
 
-= tableToDict:
+tableToDict
+
 Takes any given database table, feature class or shapefile as unput, and returns a list containing all rows, or a dictionary containin all rows with the contents of a specified keyFields as dictionary keys.
 
 = dictToTable:

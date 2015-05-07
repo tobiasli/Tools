@@ -240,6 +240,14 @@ class ingrediensListe(object):
                 tekstListe += [ing.vare]
         return tekstListe
 
+    def komponentTekst(self):
+        #Returner en enkel tekstliste over alle komponentene til hver ingrediens
+        #i listen.
+        tekstListe = []
+        for ing in self.ingredienser(baklengsSortering = True):
+            tekstListe += [ing.komponentTekst]
+        return tekstListe
+
     def leggTil(self,ing):
         #Legg en ingrediens til i listen. Dersom en sammenlignbar ingrediens
         #allerede finnes i listen vil den summeres. De individuelle
@@ -633,7 +641,8 @@ class kokk(object):
             print '%+15s\t%-30s' % (ing.mengdeTekst(),ing.vare)
 
     def sendTilWunderlist(self):
-        wunderTob.sendToWunderlist('Handleliste',self.handleliste.ingredienserTekst())
+##        wunderTob.sendToWunderlist('Handleliste',self.handleliste.ingredienserTekst(),self.handleliste.komponentTekst())
+        wunderTob.sendToWunderlist('Test',self.handleliste.ingredienserTekst(),self.handleliste.komponentTekst())
 
 if __name__ == '__main__':
     path =  os.path.dirname(__file__)
@@ -648,5 +657,5 @@ if __name__ == '__main__':
     ukeplanSti = os.path.join(path,'ukeplan.txt')
     kokken.lesUkeplan(ukeplanSti)
     kokken.printOppskriftForslag()
-##    kokken.leggOppskrifterTilHandleliste()
-##    kokken.sendTilWunderlist()
+    kokken.leggOppskrifterTilHandleliste()
+    kokken.sendTilWunderlist()

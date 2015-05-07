@@ -33,7 +33,7 @@ from selenium.webdriver.common.keys import Keys
 url = r'https://www.wunderlist.com/webapp'
 login = {'username':'tobiaslland@gmail.com','password':'dvegeg86'}
 
-def sendToWunderlist(destinationList,tasks,loginInfo = login):
+def sendToWunderlist(destinationList,tasks,descriptions,loginInfo = login):
     browserType = 'Firefox'
     browser = eval('webdriver.%s()' % browserType)
     browser.get(url)
@@ -83,9 +83,17 @@ def sendToWunderlist(destinationList,tasks,loginInfo = login):
 
     for p in parts:
         if 'addTask' in p.get_attribute('class'):
-            for t in tasks:
+            for t,d in zip(tasks,descriptions):
+                browser.find_elements_by_tag_name('taskItem')
                 p.send_keys(t)
                 p.send_keys(Keys.RETURN)
+
+                wait.until(EC.element_to_be_clickable((By.TAG,'taskItem')))
+                taskItems = browser.find_elements_by_tag_name('taskItem')
+                taskItems[0].double_click()
+                wait.until(EC.element_to_be_clickable((By.TAG,'note-body selectable'))).send_keys(d)
+                wait.until(EC.element_to_be_clickable((By.TAG,'note-body selectable'))).send_keys(Keys.RETURN)
+
 
 
 

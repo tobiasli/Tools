@@ -7,7 +7,7 @@ Wrapper for making my gis-day easier. Two primary functions:
 
 <i>tableToDict</i>
 
-Takes any given database table, feature class or shapefile as unput, and returns a list containing all rows, or a dictionary containin all rows with the contents of a specified keyFields as dictionary keys.
+Takes any given database table, feature class or shapefile as input, and returns a list containing all rows, or a dictionary containin all rows with the contents of a specified keyField as dictionary keys.
 
 <i>dictToTable</i>
 

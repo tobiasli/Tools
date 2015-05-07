@@ -1,22 +1,25 @@
 ﻿# Ukeplan
 mandag:-
-tirsdag:tunfisksalat
-onsdag:fiskesuppe med kokos
-torsdag:carbonara
-fredag:pizza med kjøttboller
-lørdag:koteletter med potetmos
-søndag:chilli con carne
+tirsdag:-
+onsdag:-
+torsdag:koteletter med potetmos
+fredag:kylling med indisk linsesalat
+lørda:Lakselomper
+søndag:Fiskeburger til 1
 
-3 l melk
-1.5 l juice
-brød til frokost
-egg
 leverpostei
-10 tomater
-cottage
+2 pakker kjøttpålegg
+brød
+kremost
+3 l melk
+1.5 l melk
+6 bokser makrell i tomat
 biola
-4 skyr
-4 bananer
+6 skyr
+nye tannbørster
+4 pakker knekkebrød
+10 tomater
+bananer
 epler
-
-
+gulrøtter
+avokado

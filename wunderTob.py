@@ -32,15 +32,20 @@ from selenium.webdriver.common.keys import Keys
 #Spesifikk liste:
 url = r'https://www.wunderlist.com/webapp'
 login = {'username':'tobiaslland@gmail.com','password':'dvegeg86'}
+timeout = 50 #deciseconds
 
-def sendToWunderlist(destinationList,tasks,descriptions,loginInfo = login):
+def sendToWunderlist(destinationList,tasks,descriptions = [],loginInfo = login):
+    print 1
+
     browserType = 'Firefox'
     browser = eval('webdriver.%s()' % browserType)
     browser.get(url)
     wait = WebDriverWait(browser, 10)
+    print 2
 
     count = 0
-    while count < 50:
+    while count < timeout:
+        print('.'),
         if 'login' in browser.current_url:
             wait.until(EC.element_to_be_clickable((By.NAME,'email'))).send_keys(loginInfo['username'])
             wait.until(EC.element_to_be_clickable((By.NAME,'password'))).send_keys(loginInfo['password'])
@@ -53,47 +58,73 @@ def sendToWunderlist(destinationList,tasks,descriptions,loginInfo = login):
             time.sleep(0.1)
             count += 1
 
+    print 3
+
     #Find correct list:
     ##try:
     ##    wait.until(EC.element_to_be_clickable((By.LINK_TEXT ,'Handleliste')))
     ##except:
     ##    raise Exception('List not found!')
     count = 0
-    while count < 50:
+    while count < timeout:
+        print('.'),
         try:
             parts = browser.find_elements_by_class_name('title')
-            break
         except:
-            time.sleep(0.1)
-            count += 1
-    if parts:
-        for part in parts:
-            if destinationList == part.text:
-                part.click()
+            pass
+        if parts:
+            for p in parts:
+                try:
+                    if p.text == destinationList:
+                            p.click()
+                            break
+                except:
+                    pass
+
+        time.sleep(0.1)
+        count += 1
+
+    print 4
 
     #Add items to list:
     count = 0
-    while count < 50:
+    while count < timeout:
+        print('.'),
         try:
             parts = browser.find_elements_by_tag_name('input')
-            break
         except:
-            time.sleep(0.1)
-            count += 1
+            pass
+        if parts:
+            for p in parts:
+                try:
+                    if 'addTask' in p.get_attribute('class'):
+                        p.send_keys(Keys.RETURN)
+                        break
+                except:
+                    pass
+        time.sleep(0.1)
+        count += 1
 
     for p in parts:
         if 'addTask' in p.get_attribute('class'):
-            for t,d in zip(tasks,descriptions):
-                browser.find_elements_by_tag_name('taskItem')
-                p.send_keys(t)
-                p.send_keys(Keys.RETURN)
+            if descriptions:
+                for t,d in zip(tasks,descriptions):
+                    browser.find_elements_by_tag_name('taskItem')
+                    p.send_keys(t)
+                    p.send_keys(Keys.RETURN)
 
-                wait.until(EC.element_to_be_clickable((By.TAG,'taskItem')))
-                taskItems = browser.find_elements_by_tag_name('taskItem')
-                taskItems[0].double_click()
-                wait.until(EC.element_to_be_clickable((By.TAG,'note-body selectable'))).send_keys(d)
-                wait.until(EC.element_to_be_clickable((By.TAG,'note-body selectable'))).send_keys(Keys.RETURN)
+                    wait.until(EC.element_to_be_clickable((By.TAG,'taskItem')))
+                    taskItems = browser.find_elements_by_tag_name('taskItem')
+                    taskItems[0].double_click()
+                    wait.until(EC.element_to_be_clickable((By.TAG,'note-body selectable'))).send_keys(d)
+                    wait.until(EC.element_to_be_clickable((By.TAG,'note-body selectable'))).send_keys(Keys.RETURN)
+            else:
+                for t in tasks:
+                    pass
+                    p.send_keys(t)
+                    p.send_keys(Keys.RETURN)
 
+    print 5
 
 
 

@@ -28,6 +28,7 @@ from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
+from selenium.webdriver.common.action_chains import ActionChains
 
 #Spesifikk liste:
 url = r'https://www.wunderlist.com/webapp'
@@ -71,7 +72,7 @@ def sendToWunderlist(destinationList,tasks,descriptions = [],loginInfo = login):
         try:
             parts = browser.find_elements_by_class_name('title')
         except:
-            pass
+            continue
         if parts:
             for p in parts:
                 try:
@@ -99,30 +100,35 @@ def sendToWunderlist(destinationList,tasks,descriptions = [],loginInfo = login):
                 try:
                     if 'addTask' in p.get_attribute('class'):
                         p.send_keys(Keys.RETURN)
+                        part = p
                         break
                 except:
                     pass
         time.sleep(0.1)
         count += 1
 
-    for p in parts:
-        if 'addTask' in p.get_attribute('class'):
-            if descriptions:
-                for t,d in zip(tasks,descriptions):
-                    browser.find_elements_by_tag_name('taskItem')
-                    p.send_keys(t)
-                    p.send_keys(Keys.RETURN)
+    if descriptions:
+        for t,d in zip(tasks,descriptions):
+            browser.find_elements_by_tag_name('taskItem')
+            p.send_keys(t)
+            p.send_keys(Keys.RETURN)
 
-                    wait.until(EC.element_to_be_clickable((By.TAG,'taskItem')))
-                    taskItems = browser.find_elements_by_tag_name('taskItem')
-                    taskItems[0].double_click()
-                    wait.until(EC.element_to_be_clickable((By.TAG,'note-body selectable'))).send_keys(d)
-                    wait.until(EC.element_to_be_clickable((By.TAG,'note-body selectable'))).send_keys(Keys.RETURN)
-            else:
-                for t in tasks:
-                    pass
-                    p.send_keys(t)
-                    p.send_keys(Keys.RETURN)
+            wait.until(EC.element_to_be_clickable((By.CLASS_NAME,'taskItem')))
+            taskItems = browser.find_elements_by_class_name('taskItem')
+            action = ActionChains(browser)
+            action.double_click(taskItems[0])
+            action.perform()
+
+            a = browser.find_element_by_class_name('note')
+            a.find_elements_by_class_name('content-fakable')[0].click()
+            action = ActionChains(browser)
+            action.click()
+            action.send_keys(d)
+    else:
+        for t in tasks:
+            pass
+            p.send_keys(t)
+            p.send_keys(Keys.RETURN)
 
     print 5
 

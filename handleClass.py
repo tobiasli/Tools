@@ -246,7 +246,7 @@ class ingrediensListe(object):
         #i listen.
         tekstListe = []
         for ing in self.ingredienser(baklengsSortering = True):
-            tekstListe += [ing.komponentTekst]
+            tekstListe += [ing.komponentTekst()]
         return tekstListe
 
     def leggTil(self,ing):
@@ -642,8 +642,7 @@ class kokk(object):
             print '%+15s\t%-30s' % (ing.mengdeTekst(),ing.vare)
 
     def sendTilWunderlist(self):
-##        wunderTob.sendToWunderlist('Handleliste',self.handleliste.ingredienserTekst(),self.handleliste.komponentTekst())
-        wunderTob.sendToWunderlist('Test',self.handleliste.ingredienserTekst(),self.handleliste.komponentTekst())
+        wunderTob.sendToWunderlist('Handleliste',self.handleliste.ingredienserTekst(),self.handleliste.komponentTekst())
 
 if __name__ == '__main__':
     path =  os.path.dirname(__file__)

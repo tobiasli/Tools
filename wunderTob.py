@@ -67,7 +67,8 @@ def sendToWunderlist(destinationList,tasks,descriptions = [],loginInfo = login):
     ##except:
     ##    raise Exception('List not found!')
     count = 0
-    while count < timeout:
+    stop = False
+    while count < timeout and not stop:
         print('.'),
         try:
             parts = browser.find_elements_by_class_name('title')
@@ -78,6 +79,7 @@ def sendToWunderlist(destinationList,tasks,descriptions = [],loginInfo = login):
                 try:
                     if p.text == destinationList:
                             p.click()
+                            stop = True
                             break
                 except:
                     pass
@@ -122,8 +124,8 @@ def sendToWunderlist(destinationList,tasks,descriptions = [],loginInfo = login):
             a = browser.find_element_by_class_name('note')
             a.find_elements_by_class_name('content-fakable')[0].click()
             action = ActionChains(browser)
-            action.click()
             action.send_keys(d)
+            action.perform()
     else:
         for t in tasks:
             pass

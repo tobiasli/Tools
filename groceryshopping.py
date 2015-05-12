@@ -78,7 +78,8 @@ UNIT_PROPERTIES = [ #[base unit, variants, amount unit, base unit plural ending]
         ['',[],{},''] #Some groceries are unitless.
         ]
 
-NUMBER_FORMAT = '(?:(?P<numerator>\d+)/(?P<denominator>\d+)|(?P<amount>\d+(?:[\.,]\d+)?))'
+_parts_ = {'start':'(?:(?<=^)|(?<=\D))','part1':u'(?P<amount>\d+(?:[\.,]\d+)?)','part2':u'(?P<numerator>\d+)/(?P<denominator>\d+)','stop':'(?=\D)'}
+NUMBER_FORMAT = u'(?:%(start)s(?:%(part1)s|%(part2)s)%(stop)s)+' % _parts_
 
 class Unit(object):
     # Class for handling a unit.
@@ -193,7 +194,7 @@ class Unit(object):
         pattern_combo += [pattern_parts['base_unit']]
 
         if self.plural_of_base_unit:
-            pattern_combo += ['%(plural_ending_of_base_unit)s']
+            pattern_combo += ['%(plural_of_base_unit)s']
 
         if self.base_unit:
             pattern_combo += [no_letter_after_base_unit]
@@ -206,15 +207,18 @@ class Units(object):
     # Class for containing several units, and determining the unit of an
     # ingredient text, returning an ingredient object.
 
-    def __init__(self,unit_properties):
+    def __init__(self):
+        unit_properties = UNIT_PROPERTIES
         self.units = []
         for unit in unit_properties:
-            self.units += [Unit(unit_properties)]
+            self.units += [Unit(unit)]
 
     def match_unit(self,unit_string):
         # Check what unit the string matches with, and return a dictionary
         # containing the unit object and the properties of the unit veriation.
         pass
+
+UNITS = Units()
 
 class IngredientComponent(object):
     # A class for a single ingredient componet. Technically the same information
@@ -228,7 +232,7 @@ class IngredientComponent(object):
     #behandling.
     def __init__(self,ingredient_string,recipe={}):
 
-        self.amount,amount_text = self.tolkAntall(ingredient_string)
+        self.amount,amount_text = self.parse_amount(ingredient_string)
         ingredient_string = re.sub(amount_text,'',ingredient_string,1).strip()
 
         self.unit,unit_text = self.tolkEnhet(ingredient_string)
@@ -254,21 +258,20 @@ class IngredientComponent(object):
         return amount
 
     def mengdeTekst(self):
-        return self.enhet.mengdeTekst(self.mengde())
+        return self.enhet.mengdeTekst(self.amount())
 
-    def tolkAntall(self,ing):
+    def parse_amount(self,ingredient_string):
         #Tolke hva som er det angitte antallet av en ingrediens.
 
-        tallForm = '(?:(?P<teller>\d+)/(?P<nevner>\d+)|(?P<tall>\d+(?:[\.,]\d+)?))'
+        number_combo = u'^(?:ca|omtrent|minst)?[\. ]*%s(?:[ -]+%s)?' % (NUMBER_FORMAT,NUMBER_FORMAT)
 
-        tallKombo = u'^(?:ca|omtrent|minst)? ?%s(?:[ -]+%s)?' % (tallForm,tallForm)
+        numbers = tregex.find(number_combo,ingredient_string)
 
-        tall = tregex.find(tallKombo,ing)
-
-        if tall:
-            alleTall = []
-            antallTekst = tall[0]
-            tall = tregex.name(tallForm,antallTekst)
+        ##CONTINUE HERE!! TOBIAS 12.05.2015
+        if numbers:
+            all_numbers = []
+            amount_text = numbers[0]
+            tall = tregex.name(tallForm,amount_text)
             for t in tall:
                 if t['tall']:
                     alleTall += [float(t['tall'].replace(',','.'))]
@@ -458,9 +461,9 @@ class enhet(object):
         return form
 
 
-enhetsListe = OrderedDict()
-for en in enheter:
-    enhetsListe[en[0]] = enhet(en)
+##enhetsListe = OrderedDict()
+##for en in enheter:
+##    enhetsListe[en[0]] = enhet(en)
 
 
 class oppskrift(object):

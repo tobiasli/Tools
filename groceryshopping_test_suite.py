@@ -49,12 +49,32 @@ class TestGroceryClass(unittest.TestCase):
 
                     print unit.amount_formated(unit.normalize_amount(unit_dictionary))
 
-
-
-
     def test_units_class(self):
-        pass
+        # Method for testing the Units class.
+        units = groceryshopping.UNITS
+        examples = [
+                u'1 ss',
+                u'2 bokser',
+                u'10000g',
+                ]
+        for e in examples:
+            self.assertTrue(isinstance(units.match_unit(e),groceryshopping.Unit))
 
+    def test_ingredientComponent_class(self):
+        # Class for testing the parsing of ingredients.
+        parsing_examples = [
+            u'1-2 ts kyllingfond (eller 1/2 kyllingbuljongterning)',
+            u'1 boks chillibønner (kidneybønner med chillisaus)',
+            u'1/2 løk',
+            u'ca. ½ rød chili, finhakket',
+            u'ca. 1 1/2 ss soyasaus',
+            u'olivenolje',
+            u'2 ss hakket frisk basilikum',
+
+                            ]
+
+        for example in parsing_examples:
+            groceryshopping.IngredientComponent(example)
 
 if __name__ == '__main__':
     suite = unittest.TestLoader().loadTestsFromTestCase(TestGroceryClass)

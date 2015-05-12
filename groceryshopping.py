@@ -78,8 +78,12 @@ UNIT_PROPERTIES = [ #[base unit, variants, amount unit, base unit plural ending]
         ['',[],{},''] #Some groceries are unitless.
         ]
 
-_parts_ = {'start':'(?:(?<=^)|(?<=\D))','part1':u'(?P<amount>\d+(?:[\.,]\d+)?)','part2':u'(?P<numerator>\d+)/(?P<denominator>\d+)','stop':'(?=\D)'}
-NUMBER_FORMAT = u'(?:%(start)s(?:%(part1)s|%(part2)s)%(stop)s)+' % _parts_
+_parts_ = { 'start':'(?:(?<=^)|(?<=[^\d/]))',
+            'part1':u'(?P<amount>\d+(?:[\.,]\d+)?)',
+            'part2':u'(?P<numerator>\d+)/(?P<denominator>\d+)',
+            'stop':'(?:(?=$)|(?=[^\d/]))'}
+NUMBER_FORMAT = u'(?:%(start)s(?:%(part1)s? ?(?:%(part2)s)?)%(stop)s)+' % _parts_
+del _parts_
 
 class Unit(object):
     # Class for handling a unit.
@@ -271,7 +275,7 @@ class IngredientComponent(object):
         if numbers:
             all_numbers = []
             amount_text = numbers[0]
-            tall = tregex.name(tallForm,amount_text)
+            tall = tregex.name(NUMBER_FORMAT,amount_text)
             for t in tall:
                 if t['tall']:
                     alleTall += [float(t['tall'].replace(',','.'))]

@@ -57,26 +57,286 @@ import dateParse
 import wunderTob
 dateParser = dateParse.dateParse()
 
-standardAntallPersoner = 2 #Dersom ikke annet er angitt, så skal middag beregnes
-                                                    #for 2 personer.
-
-enheter = ['[khdcm]?(g)','[khdcm]?(l)','[khdcm]?(m)','(boks)(?:er)?','(teskje)(?:er)?','(ts)','(spiseskje)(?:er)?','(ss)','(pakke)','(porsjon)(?:er)?']
-siMengder = {'k':1000,'h':100,'d':0.1,'c':0.01,'m':0.001}
-
-enheter = [ #[grunnenhet,varianter,mengdebenevninger,flertallsending]
-        [u'g',['gram'],siMengder,''],
-        [u'l',['liter'],siMengder,''],
-        [u'm',['meter'],siMengder,''],
-        [u'ts',['teskje(?:er)'],{},''],
-        [u'ss',['spiseskje(?:er)'],{},''],
+UNIT_PREFIXES = {'k':1000,'kilo':1000,
+               'h':100,'hekto':100,
+               'd':0.1,'deci':0.1,
+               'c':0.01,'centi':0.01,
+               'm':0.001,'milli':0.001
+               }
+UNIT_PROPERTIES = [ #[base unit, variants, amount unit, base unit plural ending]
+        [u'g',['gram'],UNIT_PREFIXES,''],
+        [u'l',['liter'],UNIT_PREFIXES,''],
+        [u'm',['meter'],UNIT_PREFIXES,''],
+        [u'ts',['teskje','teskjeer'],{},''],
+        [u'ss',['spiseskje','spiseskjeer'],{},''],
         [u'kryddermål',[],{},''],
-        [u'pakke',[],{},'er'],
-        [u'porsjon',[],{},'er'],
-        [u'boks',[],{},'er'],
-        [u'pose',[],{},'r'],
-        [u'glass',[],{},''],
-        ['',[],{},''] #Noen ingredienser er enhetsløse. Må væære på slutten av listen over enheter.
+        [u'pakke',[],{},'pakker'],
+        [u'porsjon',[],{},'porsjoner'],
+        [u'boks',[],{},'bokser'],
+        [u'pose',[],{},'poser'],
+        [u'glass',[],{},'glass'],
+        ['',[],{},''] #Some groceries are unitless.
         ]
+
+NUMBER_FORMAT = '(?:(?P<numerator>\d+)/(?P<denominator>\d+)|(?P<amount>\d+(?:[\.,]\d+)?))'
+
+class Unit(object):
+    # Class for handling a unit.
+    def __init__(self,properties):
+        # Construct the Unit object from a set of properties:
+        self.base_unit = properties[0]
+        self.variants = properties[1]
+        self.unit_prefixes = properties[2]
+        self.plural_of_base_unit = properties[3]
+        self.pattern = self._pattern()
+
+    def match_unit(self,unit_string):
+        # Check if input string matches unit. If true, return a unit dictionary.
+        output = {}
+        match = tregex.smart(self.pattern,unit_string)
+        if match or not unit_string and not self.base_unit:
+            return match[0]
+        return False
+
+    def normalize_amount(self,unit_dictionary):
+        # Return the normalized amount for this unit, based on the unit prefix.
+        if unit_dictionary['numerator'] and unit_dictionary['denominator']:
+            original_amount = float(unit_dictionary['numerator'])/float(unit_dictionary['denominator'])
+        elif unit_dictionary['amount']:
+            original_amount = float(unit_dictionary['amount'].replace(',','.'))
+        else: #No amount is specified.
+            original_amount = None
+
+        if 'unit_prefix' in unit_dictionary and unit_dictionary['unit_prefix']:
+            normalized_amount = original_amount*UNIT_PREFIXES[unit_dictionary['unit_prefix']]
+        else:
+            normalized_amount = original_amount
+
+        return normalized_amount
+
+    def amount_formated(self,normalized_amount):
+        # Return the amount and unit as a text string, with logic for handling
+        # scaling and plurals.
+
+        mengde = ''
+        mengdeEnhet = ''
+        flertall = ''
+        mellomrom = ''
+        brok = False
+
+        if normalized_amount:
+            if self.base_unit == 'l':
+                if normalized_amount < 1:
+                    mengdeEnhet = 'd'
+                    normalized_amount = normalized_amount/UNIT_PREFIXES[mengdeEnhet]
+                elif normalized_amount < 0.1:
+                    mengdeEnhet = 'm'
+                    normalized_amount = normalized_amount/UNIT_PREFIXES[variant]
+            elif self.base_unit == 'g':
+                if normalized_amount >= 1000:
+                    mengdeEnhet = 'k'
+                    normalized_amount = normalized_amount/UNIT_PREFIXES[mengdeEnhet]
+                elif normalized_amount < 1:
+                    mengdeEnhet = 'm'
+                    normalized_amount = normalized_amount/UNIT_PREFIXES[mengdeEnhet]
+            elif self.base_unit == 'm':
+                if normalized_amount < 1:
+                    mengdeEnhet = 'c'
+                    normalized_amount = normalized_amount/UNIT_PREFIXES[mengdeEnhet]
+                elif normalized_amount < 0.01:
+                    mengdeEnhet = 'm'
+                    normalized_amount = normalized_amount/UNIT_PREFIXES[mengdeEnhet]
+
+            if normalized_amount < 1: #Finn potensiell brøk:
+                potensielleNevnere = [2,3,4]
+                for i in potensielleNevnere:
+                    rest = math.fmod(normalized_amount,1/float(i))
+                    if not rest:
+                        brok = True
+                        teller = (normalized_amount-rest)*i
+                        nevner = i
+                        break
+                if brok:
+                    mengde = '%d/%d' % (teller,nevner)
+            else:
+                mengde = '%0.2f' % normalized_amount
+                if mengde[-3:]=='.00':
+                    mengde = '%0.0f' % normalized_amount #Fjern desimaler ved heltall
+
+        if normalized_amount <> 1 and not brok and self.plural_of_base_unit:
+            unit = self.plural_of_base_unit
+        else:
+            unit = self.base_unit
+
+        if self.base_unit:
+            mellomrom = ' '
+
+        mengdeTekst = '%s%s%s%s' % (mengde,mellomrom,mengdeEnhet,unit)
+
+        return mengdeTekst
+
+    def _pattern(self):
+
+        pattern_parts = {
+                    'unit_prefix':'(?P<unit_prefix>%s)?' % '|'.join(self.unit_prefixes),
+                    'base_unit':'(?P<base_unit>%s)' % '|'.join([self.base_unit] + self.variants),
+                    'plural_of_base_unit':'(?P<plural_of_base_unit>%s)?' % self.plural_of_base_unit
+                    }
+
+        no_letter_after_base_unit = u'(?:(?=\W)|(?=$))'
+
+        pattern_combo = ['(?i)(?:(?<= )|(?<=^))%s?[ ]?' % NUMBER_FORMAT]
+
+        if self.unit_prefixes:
+            pattern_combo += ['%(unit_prefix)s']
+
+        pattern_combo += [pattern_parts['base_unit']]
+
+        if self.plural_of_base_unit:
+            pattern_combo += ['%(plural_ending_of_base_unit)s']
+
+        if self.base_unit:
+            pattern_combo += [no_letter_after_base_unit]
+
+        pat = ''.join(pattern_combo) % pattern_parts
+
+        return pat
+
+class Units(object):
+    # Class for containing several units, and determining the unit of an
+    # ingredient text, returning an ingredient object.
+
+    def __init__(self,unit_properties):
+        self.units = []
+        for unit in unit_properties:
+            self.units += [Unit(unit_properties)]
+
+    def match_unit(self,unit_string):
+        # Check what unit the string matches with, and return a dictionary
+        # containing the unit object and the properties of the unit veriation.
+        pass
+
+class IngredientComponent(object):
+    # A class for a single ingredient componet. Technically the same information
+    # as an Ingredient, but contained in this class to simplify summing of
+    # several ingredients and keeping the origin of every single ingredient when
+    # working through a chain of ingredient summing.
+    #
+    # An Ingredient does not have to be a litteral ingredient, but can
+    # absolutely anything the user needs to buy.
+    #Klasse for å håndtere en enkelt ingrediens, med enhet, mengde, skalering og
+    #behandling.
+    def __init__(self,ingredient_string,recipe={}):
+
+        self.amount,amount_text = self.tolkAntall(ingredient_string)
+        ingredient_string = re.sub(amount_text,'',ingredient_string,1).strip()
+
+        self.unit,unit_text = self.tolkEnhet(ingredient_string)
+        ingredient_string = re.subn(unit_text,'',ingredient_string,1)[0].strip()
+
+        self.comment,comment_text = self.tolkKommentar(ingredient_string)
+        for k in comment_text:
+            ingredient_string = re.sub(k,'',ingredient_string).strip()
+
+        self.ingredient = ingredient_string
+        self.recipe = recipe
+
+    def amount(self):
+        #Returnerer summen av mengden til enheten:
+        amount = None
+        if self.amount and self.recipe:
+                amount = self.amount*self.unit.unit_prefix_factor*self.recipe.number_of_people/self.recipe.recipe_number_of_people
+        elif self.amount and not self.recipe:
+            amount = self.amount*self.unit.unit_prefix_factor
+        else:
+            amount = None #None betyr at vi trenger varen, men mengde er uviktig. Eks: Pepper, olivenolje, friske urter, etc.
+
+        return amount
+
+    def mengdeTekst(self):
+        return self.enhet.mengdeTekst(self.mengde())
+
+    def tolkAntall(self,ing):
+        #Tolke hva som er det angitte antallet av en ingrediens.
+
+        tallForm = '(?:(?P<teller>\d+)/(?P<nevner>\d+)|(?P<tall>\d+(?:[\.,]\d+)?))'
+
+        tallKombo = u'^(?:ca|omtrent|minst)? ?%s(?:[ -]+%s)?' % (tallForm,tallForm)
+
+        tall = tregex.find(tallKombo,ing)
+
+        if tall:
+            alleTall = []
+            antallTekst = tall[0]
+            tall = tregex.name(tallForm,antallTekst)
+            for t in tall:
+                if t['tall']:
+                    alleTall += [float(t['tall'].replace(',','.'))]
+                elif t['teller'] and t['nevner']:
+                    alleTall += [float(t['teller'])/float(t['nevner'])]
+                else:
+                    raise Exception(u'Dårlig tallformatering i ingrediens %s' % ing)
+            antall = max(alleTall)
+        else:
+            antall = None
+            antallTekst = ''
+
+        return [antall,antallTekst]
+
+    def tolkEnhet(self,ing):
+        #Tolke mengdeenheten til en gitt ingrediens.
+        for k,v in enhetsListe.items():
+            enh = v.treff(ing)
+            if enh:
+                enhTekst = v.treffTekst(ing)
+                break
+        return enh,enhTekst
+
+    def tolkKommentar(self,ing):
+        kommentarTekst = re.findall('\(.*?\)|, .*?$',ing)
+        if kommentarTekst:
+            tekst = [re.findall(u'\((.*?)\)|, (.*?)$',v,re.UNICODE)[0] for v in kommentarTekst]
+            kommentar = []
+            for t in tekst:
+                kommentar += [v for v in t if v]
+            kommentar = ', '.join(kommentar)
+            kommentarTekst = [re.escape(k) for k in kommentarTekst]
+        else:
+            kommentar = ''
+            kommentarTekst = ''
+        return kommentar, kommentarTekst
+
+class Ingredient(object):
+    # Class for handling an ingredient. Returning unit, summing of several units
+    # and plurals of units.
+    # An Ingredient consists of at least one IngredientComponent. If combining
+    # two ingredients with the same unit and name, the IngredientComponent lists
+    # are simply combined.
+    #
+    # An Ingredient does not have to be a litteral ingredient, but can
+    # absolutely anything the user needs to buy.
+    #
+    # CONTINUE WORKING HERE. FINISH WORK ON UNIT AND UNITS WHEN THE STRUCTURE OF THE INGREDIENTS IS MORE FLESHED OUT.
+    pass
+
+class GroceryList(object):
+    # Class for handling a list of ingredients. Methods for combining lists, and
+    # for collating the ingrediens by combining duplicates.
+    pass
+
+
+class Recipe(object):
+    # Class for handling a recipe. A recipe has several properties and a list of
+    # ingredients.
+    #
+    # Recipe needs to differentiate between scaling to a number of people, and
+    # scaling by multiplication.
+    pass
+
+class Cookbook(object):
+    # Class for handling a collection of Recipies. Contains search functions for
+    # the recipies contained within.
+    pass
 
 class enhet(object):
     def __init__(self,enhetEgenskaper):

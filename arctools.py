@@ -25,6 +25,12 @@ Copyright:  (c) Tobias Litherland 2014, 2015
                         renameFields (new)
                         changeFieldOrder (new)
 
+-------------------------------------------------------------------------------
+
+ Future improvements:
+    - Rewrite functions to agree with PEP8.
+    - Add "sortField" argument to tableToDict to allow sorted output based on a
+        field.
 
 -------------------------------------------------------------------------------
 '''

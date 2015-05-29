@@ -31,6 +31,7 @@ Copyright:  (c) Tobias Litherland 2014, 2015
     - Rewrite functions to agree with PEP8.
     - Add "sortField" argument to tableToDict to allow sorted output based on a
         field.
+    - Objectify module so it accepts a pre-loaded arcpy instance.
 
 -------------------------------------------------------------------------------
 '''

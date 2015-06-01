@@ -110,19 +110,31 @@ def dictToTable(dictionary, tablePath, table, method = 'insert', keyField = None
     shapeIdentification = '^shape(@\w*)?$'
 
     #Get the field names from the first list in the
-    if isinstance(dictionary,list):
+    islist = False
+    isdict = False
+    isgroupeddict = False
+    #Straight list of dictionaries:
+    if isinstance(dictionary,list) and isinstance(dictionary[0],dict):
         islist = True
         dictionaryFrame = dictionary[0]
-    elif isinstance(dictionary,dict) or isinstance(dictionary,OrderedDict):
-        islist = False
-        dictionaryFrame = dictionary[dictionary.keys()[0]]
+    #Dictionary of dictionaries:
+    elif (isinstance(dictionary,dict) or isinstance(dictionary,OrderedDict)) and (isinstance(dictionary.values()[0],dict) or isinstance(dictionary.values()[0],OrderedDict)):
+        isdict = True
+        dictionaryFrame = dictionary.values()[0]
+    #Dictionary of grouped dictionaries (dictionary with a list of dictionaries that usually have a common attribute.
+    elif (isinstance(dictionary,dict) or isinstance(dictionary,OrderedDict)) and isinstance(dictionary.values()[0],list) and (isinstance(dictionary.values()[0][0],dict) or isinstance(dictionary.values()[0][0],OrderedDict)):
+        isgroupeddict = True
+        dictionaryFrame = dictionary.values()[0][0]
     else:
         Exception('Unknown type for input argument dictionary.')
 
     dictionaryFields = dictionaryFrame.keys()
 
-    if isinstance(dictionary,dict) or isinstance(dictionary,OrderedDict): #Create list of dictionaries in case of dictionary of dictionaries.
-        dictionary = [v for v in dictionary.values()]
+    #Convert dictionaries and grouped dictionaries to lists for entry as table rows:
+    if isdict:
+        dictionary = [row for row in dictionary.values()]
+    if isgroupeddict:
+        dictionary = [row for row in [group for group in dictionary.values()]]
 
     #Check integrity of fields, and create new dictionary containing only the selected fields.
     if fields:
@@ -205,12 +217,12 @@ def dictToTable(dictionary, tablePath, table, method = 'insert', keyField = None
     if method == 'insert':
         with arcpy.da.InsertCursor(os.path.join(tablePath,table),dictionaryFields) as cursor:
             for d in dictionary:
-                values = [d[key] for key in cursor.fields]
-                operationCount += 1
                 try:
-                    cursor.insertRow(values)
+                    values = [d[key] for key in cursor.fields]
                 except:
-                    pass
+                    pass #TODO
+                operationCount += 1
+                cursor.insertRow(values)
 
     elif method == 'update':
         with arcpy.da.UpdateCursor(os.path.join(tablePath,table),dictionaryFields) as cursor:

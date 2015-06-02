@@ -14,6 +14,9 @@ Copyright:  (c) Tobias Litherland 2014, 2015
 -------------------------------------------------------------------------------
 
  History:
+    02.06.2015  TL  Added method create_filled_contours, which creates filled
+                    contours for a specified set of contour levels.
+    01.06.2015  TL  Added handling of grouped dictionaries in dictToTable
     05.03.2015  TL  Canceled development of changeFieldOrder. The operation
                     is too complex and prone to errors, and the manual job
                     for a given table is not that hard. Maybe.
@@ -126,7 +129,7 @@ def dictToTable(dictionary, tablePath, table, method = 'insert', keyField = None
         isgroupeddict = True
         dictionaryFrame = dictionary.values()[0][0]
     else:
-        Exception('Unknown type for input argument dictionary.')
+        raise Exception('Unknown structure for input argument [dictionary].')
 
     dictionaryFields = dictionaryFrame.keys()
 
@@ -134,7 +137,7 @@ def dictToTable(dictionary, tablePath, table, method = 'insert', keyField = None
     if isdict:
         dictionary = [row for row in dictionary.values()]
     if isgroupeddict:
-        dictionary = [row for row in [group for group in dictionary.values()]]
+        dictionary = [item for sublist in dictionary.values() for item in sublist]
 
     #Check integrity of fields, and create new dictionary containing only the selected fields.
     if fields:
@@ -217,10 +220,7 @@ def dictToTable(dictionary, tablePath, table, method = 'insert', keyField = None
     if method == 'insert':
         with arcpy.da.InsertCursor(os.path.join(tablePath,table),dictionaryFields) as cursor:
             for d in dictionary:
-                try:
-                    values = [d[key] for key in cursor.fields]
-                except:
-                    pass #TODO
+                values = [d[key] for key in cursor.fields]
                 operationCount += 1
                 cursor.insertRow(values)
 
@@ -322,6 +322,68 @@ def tableToDict(table,sqlQuery = '', keyField = None, groupBy = None, fields = [
                 output += [dictRow]
 
     return output
+
+def create_filled_contours(raster,output_feature_class,explicit_contour_list):
+
+    '''
+    Method for creating filled contours for a specified list of contours.
+
+    Input
+          raster                raster  Raster dataset for which the values are
+                                        calculated.
+          output_feature_class  f.class The feature class to store the output
+                                        polygons.
+          explicit_contour_list list    A list containing the specific levels of
+                                        every contour.
+    '''
+
+    contour_line = r'in_memory\arctools_contour_line'
+    fishnet_line= r'in_memory\arctools_fishnet_line'
+    contour_polygons = r'in_memory\arctools_contour_polygons'
+    contour_merge_line = r'in_memory\arctools_contour_merge_line'
+    level_join_polygons = r'in_memory\arctools_level_join_polygons'
+
+    arcpy.CheckOutExtension('Spatial')
+    arcpy.sa.ContourWithBarriers(dem,contour_line,explicit_only = True, in_explicit_contours = contour_level_list)
+    arcpy.CheckInExtension('Spatial')
+
+    field = 'Cont_check_arctools'
+    arcpy.AddField_management(contour_line,field,'LONG')
+    expression = '1'
+    arcpy.CalculateField_management(contour_line, field, expression, "PYTHON")
+    field2 = 'Edge_check_arctools'
+    arcpy.AddField_management(contour_line,field2,'LONG')
+    expression = '0'
+    arcpy.CalculateField_management(contour_line, field2, expression, "PYTHON")
+
+    desc = arcpy.Describe(dem)
+    XMin = desc.extent.XMin+desc.meanCellWidth
+    XMax = desc.extent.XMax-desc.meanCellWidth
+    YMin = desc.extent.YMin+desc.meanCellHeight
+    YMax = desc.extent.YMax-desc.meanCellHeight
+    arcpy.env.overwriteOutput = True
+    arcpy.CreateFishnet_management(out_feature_class=fishnet_line, origin_coord='%0.4f %0.4f' % (XMin,YMin), y_axis_coord='%0.4f %0.4f' % (XMin,YMin+10), cell_width="0", cell_height="0", number_rows="1", number_columns="1", corner_coord='%0.4f %0.4f' % (XMax,YMax), labels="LABELS", template='%0.4f %0.4f %0.4f %0.4f' % (XMin,YMin,XMax,YMax), geometry_type="POLYLINE")
+    arcpy.DefineProjection_management(fishnet_line,desc.spatialReference)
+
+    arcpy.AddField_management(fishnet_line,field2,'LONG')
+    expression = '1'
+    arcpy.CalculateField_management(fishnet_line, field2, expression, "PYTHON")
+
+    arcpy.env.overwriteOutput = True
+    arcpy.Merge_management(inputs=';'.join([contour_line,fishnet_line]), output=contour_merge_line, field_mappings="""Contour "Contour" true true false 8 Double 0 0 ,First,#,%(contour_line)s,Contour,-1,-1;Type "Type" true true false 4 Long 0 0 ,First,#,%(contour_line)s,Type,-1,-1;%(field)s "%(field)s" true true false 4 Long 0 0 ,Sum,#,%(contour_line)s,%(field)s,-1,-1;%(field2)s "%(field2)s" true true false 4 Long 0 0 ,Sum,#,%(contour_line)s,%(field2)s,-1,-1,%(fishnet_line)s,%(field2)s,-1,-1;Shape_Length "Shape_Length" false true true 8 Double 0 0 ,First,#,%(contour_line)s,Shape_Length,-1,-1,%(fishnet_line)s,Shape_Length,-1,-1""" % {'fishnet_line':fishnet_line,'contour_line':contour_line,'field':field,'field2':field2})
+
+    arcpy.FeatureToPolygon_management(in_features=contour_merge_line, out_feature_class=contour_polygons, cluster_tolerance="", attributes="ATTRIBUTES", label_features="")
+
+    arcpy.SpatialJoin_analysis(target_features=contour_polygons, join_features=contour_merge_line, out_feature_class=level_join_polygons, join_operation="JOIN_ONE_TO_ONE", join_type="KEEP_ALL", field_mapping="""Shape_Length "Shape_Length" false true true 8 Double 0 0 ,First,#,%(contour_polygons)s,Shape_Length,-1,-1;Shape_Area "Shape_Area" false true true 8 Double 0 0 ,First,#,%(contour_polygons)s,Shape_Area,-1,-1;Contour "Contour" true true false 8 Double 0 0 ,Max,#,%(contour_merge_line)s,Contour,-1,-1;Type "Type" true true false 4 Long 0 0 ,First,#,%(contour_merge_line)s,Type,-1,-1;%(field)s "%(field)s" true true false 4 Long 0 0 ,Sum,#,%(contour_merge_line)s,%(field)s,-1,-1;%(field2)s "%(field2)s" true true false 4 Long 0 0 ,Sum,#,%(contour_merge_line)s,%(field2)s,-1,-1;Shape_Length_1 "Shape_Length_1" false true true 8 Double 0 0 ,First,#,%(contour_merge_line)s,Shape_Length,-1,-1""" % {'contour_polygons':contour_polygons,'contour_merge_line':contour_merge_line,'field':field,'field2':field2}, match_option="INTERSECT", search_radius="", distance_field_name="")
+
+    expression = '!%s!/2' % field2
+    arcpy.CalculateField_management(level_join_polygons, field2, expression, "PYTHON")
+
+    expression = 'NOT (%(field)s = %(field2)s AND Contour = %(hrv)f)' % {'hrv':hrv,'field':field,'field2':field2}
+    level_polygons_lyr = arcpy.MakeFeatureLayer_management(level_join_polygons,'level_polygon_layer',where_clause = expression)
+
+    arcpy.DeleteField_management(level_polygons_lyr,[field,field2])
+    arcpy.CopyFeatures_management(level_polygons_lyr,output_feature_class)
 
 def changeFieldOrder(table,newTable,orderedFieldList):
     '''

@@ -323,7 +323,7 @@ def tableToDict(table,sqlQuery = '', keyField = None, groupBy = None, fields = [
 
     return output
 
-def create_filled_contours(raster,output_feature_class,explicit_contour_list):
+def create_filled_contours(raster,output_feature_class,explicit_contour_list,create_complete_polygons = False,raster_edge_crop_distance = 10):
 
     '''
     Method for creating filled contours for a specified list of contours.
@@ -344,6 +344,8 @@ def create_filled_contours(raster,output_feature_class,explicit_contour_list):
     fishnet_line= r'in_memory\arctools_fishnet_line'
     contour_polygons = r'in_memory\arctools_contour_polygons'
     contour_merge_line = r'in_memory\arctools_contour_merge_line'
+    contour_merge_line_buffer = r'in_memory\contour_merge_line_buffer'
+    buffer_centroid = r'in_memory\buffer_centroid'
     level_join_polygons = r'in_memory\arctools_level_join_polygons'
 
     arcpy.CheckOutExtension('Spatial')
@@ -379,11 +381,14 @@ def create_filled_contours(raster,output_feature_class,explicit_contour_list):
 
     arcpy.SpatialJoin_analysis(target_features=contour_polygons, join_features=contour_merge_line, out_feature_class=level_join_polygons, join_operation="JOIN_ONE_TO_ONE", join_type="KEEP_ALL", field_mapping="""Shape_Length "Shape_Length" false true true 8 Double 0 0 ,First,#,%(contour_polygons)s,Shape_Length,-1,-1;Shape_Area "Shape_Area" false true true 8 Double 0 0 ,First,#,%(contour_polygons)s,Shape_Area,-1,-1;Contour "Contour" true true false 8 Double 0 0 ,Max,#,%(contour_merge_line)s,Contour,-1,-1;Type "Type" true true false 4 Long 0 0 ,First,#,%(contour_merge_line)s,Type,-1,-1;%(field)s "%(field)s" true true false 4 Long 0 0 ,Sum,#,%(contour_merge_line)s,%(field)s,-1,-1;%(field2)s "%(field2)s" true true false 4 Long 0 0 ,Sum,#,%(contour_merge_line)s,%(field2)s,-1,-1;Shape_Length_1 "Shape_Length_1" false true true 8 Double 0 0 ,First,#,%(contour_merge_line)s,Shape_Length,-1,-1""" % {'contour_polygons':contour_polygons,'contour_merge_line':contour_merge_line,'field':field,'field2':field2}, match_option="INTERSECT", search_radius="", distance_field_name="")
 
-    expression = '!%s!/2' % field2
-    arcpy.CalculateField_management(level_join_polygons, field2, expression, "PYTHON")
+    #Select only the polygons that are created from valid contours:
+    expression = r'NOT Contour Is NULL'
+    contour_merge_line_lyr = arcpy.MakeFeatureLayer_management(contour_merge_line,'contour_merge_line_lyr',where_clause = expression)
+    arcpy.Buffer_analysis(in_features=contour_merge_line_lyr, out_feature_class=contour_merge_line_buffer, buffer_distance_or_field="1 Meters", line_side="RIGHT", line_end_type="ROUND", dissolve_option="NONE", dissolve_field="", method="PLANAR")
+    arcpy.FeatureToPoint_management(in_features=contour_merge_line_buffer, out_feature_class=buffer_centroid, point_location="INSIDE")
 
-    expression = 'NOT (%(field)s = %(field2)s AND Contour = %(max)f)' % {'max':max(explicit_contour_list),'field':field,'field2':field2}
-    level_polygons_lyr = arcpy.MakeFeatureLayer_management(level_join_polygons,'level_polygon_layer',where_clause = expression)
+    level_polygons_lyr = arcpy.MakeFeatureLayer_management(level_join_polygons,'level_polygon_layer')
+    arcpy.SelectLayerByLocation_management(in_layer=level_polygons_lyr, overlap_type="CONTAINS", select_features=buffer_centroid, search_distance="", selection_type="NEW_SELECTION", invert_spatial_relationship="NOT_INVERT")
 
     arcpy.DeleteField_management(level_polygons_lyr,[field,field2])
 

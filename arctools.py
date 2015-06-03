@@ -16,7 +16,7 @@ Copyright:  (c) Tobias Litherland 2014, 2015
  Milestones:
     02.06.2015  TL  Added method create_filled_contours, which creates filled
                     contours for a specified set of contour levels.
-    01.06.2015  TL  Added handling of grouped dictionaries in dictToTable
+    01.06.2015  TL  Added handling of grouped dictionaries in dictToTable.
     05.03.2015  TL  Canceled development of changeFieldOrder. The operation
                     is too complex and prone to errors, and the manual job
                     for a given table is not that hard. Maybe.
@@ -386,7 +386,11 @@ def create_filled_contours(raster,output_feature_class,explicit_contour_list):
     level_polygons_lyr = arcpy.MakeFeatureLayer_management(level_join_polygons,'level_polygon_layer',where_clause = expression)
 
     arcpy.DeleteField_management(level_polygons_lyr,[field,field2])
-    arcpy.CopyFeatures_management(level_polygons_lyr,output_feature_class)
+
+    if isinstance(output_feature_class,arcpy.Geometry):
+        return arcpy.CopyFeatures_management(level_polygons_lyr,arcpy.Geometry())
+    else:
+        arcpy.CopyFeatures_management(level_polygons_lyr,output_feature_class)
 
 def changeFieldOrder(table,newTable,orderedFieldList):
     '''

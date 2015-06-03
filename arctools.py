@@ -13,7 +13,7 @@ Copyright:  (c) Tobias Litherland 2014, 2015
 
 -------------------------------------------------------------------------------
 
- History:
+ Milestones:
     02.06.2015  TL  Added method create_filled_contours, which creates filled
                     contours for a specified set of contour levels.
     01.06.2015  TL  Added handling of grouped dictionaries in dictToTable
@@ -333,9 +333,12 @@ def create_filled_contours(raster,output_feature_class,explicit_contour_list):
                                         calculated.
           output_feature_class  f.class The feature class to store the output
                                         polygons.
-          explicit_contour_list list    A list containing the specific levels of
-                                        every contour.
+          explicit_contour_list list/float    A list containing the specific levels of
+                                        every contour or a value for a single contour.
     '''
+
+    if not isinstance(explicit_contour_list,list):
+        explicit_contour_list = [explicit_contour_list]
 
     contour_line = r'in_memory\arctools_contour_line'
     fishnet_line= r'in_memory\arctools_fishnet_line'
@@ -344,7 +347,7 @@ def create_filled_contours(raster,output_feature_class,explicit_contour_list):
     level_join_polygons = r'in_memory\arctools_level_join_polygons'
 
     arcpy.CheckOutExtension('Spatial')
-    arcpy.sa.ContourWithBarriers(dem,contour_line,explicit_only = True, in_explicit_contours = contour_level_list)
+    arcpy.sa.ContourWithBarriers(raster,contour_line,explicit_only = True, in_explicit_contours = explicit_contour_list)
     arcpy.CheckInExtension('Spatial')
 
     field = 'Cont_check_arctools'
@@ -356,7 +359,7 @@ def create_filled_contours(raster,output_feature_class,explicit_contour_list):
     expression = '0'
     arcpy.CalculateField_management(contour_line, field2, expression, "PYTHON")
 
-    desc = arcpy.Describe(dem)
+    desc = arcpy.Describe(raster)
     XMin = desc.extent.XMin+desc.meanCellWidth
     XMax = desc.extent.XMax-desc.meanCellWidth
     YMin = desc.extent.YMin+desc.meanCellHeight
@@ -379,7 +382,7 @@ def create_filled_contours(raster,output_feature_class,explicit_contour_list):
     expression = '!%s!/2' % field2
     arcpy.CalculateField_management(level_join_polygons, field2, expression, "PYTHON")
 
-    expression = 'NOT (%(field)s = %(field2)s AND Contour = %(hrv)f)' % {'hrv':hrv,'field':field,'field2':field2}
+    expression = 'NOT (%(field)s = %(field2)s AND Contour = %(max)f)' % {'max':max(explicit_contour_list),'field':field,'field2':field2}
     level_polygons_lyr = arcpy.MakeFeatureLayer_management(level_join_polygons,'level_polygon_layer',where_clause = expression)
 
     arcpy.DeleteField_management(level_polygons_lyr,[field,field2])

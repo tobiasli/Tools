@@ -13,6 +13,7 @@ import difflib
 
 defaultFlag = re.UNICODE | re.DOTALL
 namedGroupDetection = u'(\(\?P<\w+>)'
+namedGroupReferenceDetection = u'\(\?\(\w+\)'
 
 def match(pattern,string,output = u'smart',flags = defaultFlag):
     #Returns the named groups from a pattern match directly, isted of going
@@ -54,6 +55,7 @@ def find(pattern,string,flags = defaultFlag):
     #remove any named groups from pattern before compiling.
 
     pattern = re.sub(namedGroupDetection,'(',pattern) #Remove named groups.
+    pattern = re.sub(namedGroupReferenceDetection,'(',pattern) #Remove named groups.
     return match(pattern,string,output = u'',flags = flags)
 
 def group(pattern,string,flags = defaultFlag):

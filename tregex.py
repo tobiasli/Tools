@@ -53,7 +53,6 @@ def name(pattern,string,flags = defaultFlag):
 def find(pattern,string,flags = defaultFlag):
     #Only return strings matching pattern, not considering any grouping. Will
     #remove any named groups from pattern before compiling.
-
     pattern = re.sub(namedGroupDetection,'(',pattern) #Remove named groups.
     pattern = re.sub(namedGroupReferenceDetection,'(',pattern) #Remove named groups.
     return match(pattern,string,output = u'',flags = flags)

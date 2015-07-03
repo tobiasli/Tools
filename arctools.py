@@ -383,7 +383,7 @@ def create_filled_contours(raster,output_feature_class,explicit_contour_list,cre
     arcpy.SpatialJoin_analysis(target_features=contour_polygons, join_features=contour_merge_line, out_feature_class=level_join_polygons, join_operation="JOIN_ONE_TO_ONE", join_type="KEEP_ALL", field_mapping="""Shape_Length "Shape_Length" false true true 8 Double 0 0 ,First,#,%(contour_polygons)s,Shape_Length,-1,-1;Shape_Area "Shape_Area" false true true 8 Double 0 0 ,First,#,%(contour_polygons)s,Shape_Area,-1,-1;Contour "Contour" true true false 8 Double 0 0 ,Max,#,%(contour_merge_line)s,Contour,-1,-1;Type "Type" true true false 4 Long 0 0 ,First,#,%(contour_merge_line)s,Type,-1,-1;Shape_Length_1 "Shape_Length_1" false true true 8 Double 0 0 ,First,#,%(contour_merge_line)s,Shape_Length,-1,-1""" % {'contour_polygons':contour_polygons,'contour_merge_line':contour_merge_line}, match_option="INTERSECT", search_radius="", distance_field_name="")
 
     expression = 'NOT Contour = %f' % explicit_contour_list[-1] #Remove the contours created by the additional level.
-    arcpy.MakeFeatureLayer_management(in_features = level_join_polygons,output_feature_class = level_lyr,where_clause = expression)
+    arcpy.MakeFeatureLayer_management(in_features = level_join_polygons,out_layer = level_lyr,where_clause = expression)
 
     if isinstance(output_feature_class,arcpy.Geometry):
         return arcpy.CopyFeatures_management(level_polygons_lyr,arcpy.Geometry())

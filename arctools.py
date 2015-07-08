@@ -118,7 +118,7 @@ def dictToTable(dictionary, tablePath, table, method = 'insert', keyField = None
     isdict = False
     isgroupeddict = False
     #Straight list of dictionaries:
-    if isinstance(dictionary,list) and isinstance(dictionary[0],dict):
+    if isinstance(dictionary,list) and isinstance(dictionary[0],dict) and isinstance(dictionary,tuple):
         islist = True
         dictionaryFrame = dictionary[0]
     #Dictionary of dictionaries:
@@ -126,7 +126,7 @@ def dictToTable(dictionary, tablePath, table, method = 'insert', keyField = None
         isdict = True
         dictionaryFrame = dictionary.values()[0]
     #Dictionary of grouped dictionaries (dictionary with a list of dictionaries that usually have a common attribute.
-    elif (isinstance(dictionary,dict) or isinstance(dictionary,OrderedDict)) and isinstance(dictionary.values()[0],list) and (isinstance(dictionary.values()[0][0],dict) or isinstance(dictionary.values()[0][0],OrderedDict)):
+    elif (isinstance(dictionary,dict) or isinstance(dictionary,OrderedDict)) and (isinstance(dictionary.values()[0],list) or isinstance(dictionary.values()[0],tuple)) and (isinstance(dictionary.values()[0][0],dict) or isinstance(dictionary.values()[0][0],OrderedDict)):
         isgroupeddict = True
         dictionaryFrame = dictionary.values()[0][0]
     else:
@@ -366,6 +366,20 @@ def create_filled_contours(raster,output_feature_class,explicit_contour_list,cre
     level_join_polygons = r'in_memory\arctools_level_join_polygons'
     level_lyr = 'level_lyr'
 
+
+#### Debug storage:
+##    contour_line = r'M:\GIS_Data\Hydrology\Projects\Reservoir_profile_builder\data.gdb\arctools_contour_line'
+##    fishnet_line= r'M:\GIS_Data\Hydrology\Projects\Reservoir_profile_builder\data.gdb\arctools_fishnet_line'
+##    polygons_raw = r'M:\GIS_Data\Hydrology\Projects\Reservoir_profile_builder\data.gdb\polygons_raw'
+##    polygon_raster_mean = r'M:\GIS_Data\Hydrology\Projects\Reservoir_profile_builder\data.gdb\polygon_raster_mean'
+##    polygons = r'M:\GIS_Data\Hydrology\Projects\Reservoir_profile_builder\data.gdb\polygons'
+##    contour_merge_line = r'M:\GIS_Data\Hydrology\Projects\Reservoir_profile_builder\data.gdb\arctools_contour_merge_line'
+##    contour_merge_line_buffer = r'M:\GIS_Data\Hydrology\Projects\Reservoir_profile_builder\data.gdb\contour_merge_line_buffer'
+##    buffer_centroid = r'M:\GIS_Data\Hydrology\Projects\Reservoir_profile_builder\data.gdb\buffer_centroid'
+##    level_join_polygons = r'M:\GIS_Data\Hydrology\Projects\Reservoir_profile_builder\data.gdb\arctools_level_join_polygons'
+####
+
+
     print 'Create contours'
     arcpy.CheckOutExtension('Spatial')
     arcpy.sa.ContourWithBarriers(raster,contour_line,explicit_only = True, in_explicit_contours = explicit_contour_list)
@@ -389,41 +403,66 @@ def create_filled_contours(raster,output_feature_class,explicit_contour_list,cre
     print 'Feature to polygon'
     arcpy.FeatureToPolygon_management(in_features=contour_merge_line, out_feature_class=polygons_raw, cluster_tolerance="", attributes="ATTRIBUTES", label_features="")
 
+    arcpy.AddField_management(polygons_raw,'Contour','DOUBLE')
+
+    poly_oid_name = arcpy.Describe(polygons_raw).OIDFieldName
+
+
     # Get the average elevation of each polygon, map these to their
     # corresponding contour elevation, and use the OBJECTID to map these back to
     # the polygon data. This process is 50x times faster than Spatial Join.
+    print 'Zonal statistics'
     start = time.clock()
     arcpy.CheckOutExtension('Spatial')
-    arcpy.gp.ZonalStatisticsAsTable_sa(polygons_raw, "OID", raster, polygon_raster_mean, "DATA", "MEAN")
+    arcpy.gp.ZonalStatisticsAsTable_sa(polygons_raw, poly_oid_name, raster, polygon_raster_mean, "DATA", "MEAN")
     arcpy.CheckInExtension('Spatial')
     stop = time.clock()
-    print 'Time spent: %0.2f seconds' % (stop-start)
 
-    table_dict = tableToDict(polygon_raster_mean,keyField = 'OID_')
-    polygons_dict = tableToDict(polygons_raw,keyField = 'OID')
+    table_oid_name = arcpy.Describe(polygon_raster_mean).OIDFieldName
+
+    table_dict = tableToDict(polygon_raster_mean,keyField = poly_oid_name + '_')
 
     bottom = explicit_contour_list[:-1]
     top = explicit_contour_list[1:]
 
+    #Reclassify mean raster values to contour values:
     for k in table_dict:
-        for b,t in zip(bottom,top):
-            if table_dict[k]['MEAN']>b and table_dict[k]['MEAN']<t:
-                polygons_dict[k]['Contour'] = t
-                break
+        if table_dict[k]['MEAN'] > explicit_contour_list[-1]:
+            table_dict[k]['MEAN'] = explicit_contour_list[-1]
+            print 'nisse'
+        elif table_dict[k]['MEAN'] < explicit_contour_list[0]:
+            table_dict[k]['MEAN'] = explicit_contour_list[0]
+            print 'troll'
+        else:
+            for b,t in zip(bottom,top):
+                if table_dict[k]['MEAN']>=b and table_dict[k]['MEAN']<t:
+                    table_dict[k]['MEAN'] = t
+                    break
 
-    for k in polygons_dict:
-        if polygons_dict[k]['Contour']==explicit_contour_list[-1]:
-            polygons_dict.pop(k,None)
+    #Insert contour values to polygon data:
+    found_warning = False
+    with arcpy.da.UpdateCursor(polygons_raw,[poly_oid_name,'Contour'])as cursor:
+        for row in cursor:
+            if not row[0] in table_dict:
+                row[1] = None #Polygons that where too small to get a raster value from Zonal Statistics. Handled later.
+                found_warning = True
+            else:
+                row[1] = table_dict[row[0]]['MEAN']
+            cursor.updateRow(row)
 
+    if found_warning:
+        print 'WARNING: Some contours were too close together to be handled properly. Check Contour = None in resulting table.'
 
-    dictToTable(polygons_dict,os.path.split(polygons)[0],os.path.split(polygons)[1],makeTable = True,fields = ['OID','Contours','Area'])
+    print 'Homebrew Spatial Join: %0.2f seconds' % (stop-start)
+    print 'Regular Spatial Join: %0.2f seconds' % 19473
+    print 'Improvement: %0.0fx' % (19473/(stop-start))
 
     if isinstance(output_feature_class,arcpy.Geometry):
-        return arcpy.CopyFeatures_management(polygons,arcpy.Geometry())
+        return arcpy.CopyFeatures_management(polygons_raw,arcpy.Geometry())
     elif isinstance(output_feature_class,list):
-        return tableToDict(polygons) # Will pass output as a list when no keyField is passed as an argument.
+        return tableToDict(polygons_raw) # Will pass output as a list when no keyField is passed as an argument.
     else:
-        arcpy.CopyFeatures_management(polygons,output_feature_class)
+        arcpy.CopyFeatures_management(polygons_raw,output_feature_class)
 
 def changeFieldOrder(table,newTable,orderedFieldList):
     '''

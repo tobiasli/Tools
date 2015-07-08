@@ -42,6 +42,7 @@ import os
 import re
 import datetime
 import arcpy
+import time
 from collections import OrderedDict,Counter
 
 # Properties
@@ -344,28 +345,34 @@ def create_filled_contours(raster,output_feature_class,explicit_contour_list,cre
     if not isinstance(explicit_contour_list,list):
         explicit_contour_list = [explicit_contour_list]
 
+    # We want an immutable list, so we convert to a tuple:
+    explicit_contour_list = tuple(explicit_contour_list)
+
     # Add an additional explicit_contour to list. The additional contour helps
     # with creating the polygons. The additional contour is +1 of the regular
     # contour intervals over the topmost contour.
     regular_delta = Counter([j-i for i, j in zip(explicit_contour_list[:-1], explicit_contour_list[1:])]).most_common(1)[0][0]
 
-    explicit_contour_list += [explicit_contour_list[-1]+regular_delta]
-
-
+    explicit_contour_list = explicit_contour_list + (explicit_contour_list[-1]+regular_delta,)
 
     contour_line = r'in_memory\arctools_contour_line'
     fishnet_line= r'in_memory\arctools_fishnet_line'
-    contour_polygons = r'in_memory\arctools_contour_polygons'
+    polygons_raw = r'in_memory\polygons_raw'
+    polygon_raster_mean = r'in_memory\polygon_raster_mean'
+    polygons = r'in_memory\polygons'
     contour_merge_line = r'in_memory\arctools_contour_merge_line'
     contour_merge_line_buffer = r'in_memory\contour_merge_line_buffer'
     buffer_centroid = r'in_memory\buffer_centroid'
     level_join_polygons = r'in_memory\arctools_level_join_polygons'
     level_lyr = 'level_lyr'
 
+    print 'Create contours'
     arcpy.CheckOutExtension('Spatial')
     arcpy.sa.ContourWithBarriers(raster,contour_line,explicit_only = True, in_explicit_contours = explicit_contour_list)
     arcpy.CheckInExtension('Spatial')
 
+
+    print 'Create fishnet'
     desc = arcpy.Describe(raster)
     XMin = desc.extent.XMin+desc.meanCellWidth
     XMax = desc.extent.XMax-desc.meanCellWidth
@@ -375,20 +382,48 @@ def create_filled_contours(raster,output_feature_class,explicit_contour_list,cre
     arcpy.CreateFishnet_management(out_feature_class=fishnet_line, origin_coord='%0.4f %0.4f' % (XMin,YMin), y_axis_coord='%0.4f %0.4f' % (XMin,YMin+10), cell_width="0", cell_height="0", number_rows="1", number_columns="1", corner_coord='%0.4f %0.4f' % (XMax,YMax), labels="LABELS", template='%0.4f %0.4f %0.4f %0.4f' % (XMin,YMin,XMax,YMax), geometry_type="POLYLINE")
     arcpy.DefineProjection_management(fishnet_line,desc.spatialReference)
 
+    print 'Merge'
     arcpy.env.overwriteOutput = True
     arcpy.Merge_management(inputs=';'.join([contour_line,fishnet_line]), output=contour_merge_line, field_mappings="""Contour "Contour" true true false 8 Double 0 0 ,First,#,%(contour_line)s,Contour,-1,-1;Type "Type" true true false 4 Long 0 0 ,First,#,%(contour_line)s,Type,-1,-1;;Shape_Length "Shape_Length" false true true 8 Double 0 0 ,First,#,%(contour_line)s,Shape_Length,-1,-1,%(fishnet_line)s,Shape_Length,-1,-1""" % {'fishnet_line':fishnet_line,'contour_line':contour_line})
 
-    arcpy.FeatureToPolygon_management(in_features=contour_merge_line, out_feature_class=contour_polygons, cluster_tolerance="", attributes="ATTRIBUTES", label_features="")
+    print 'Feature to polygon'
+    arcpy.FeatureToPolygon_management(in_features=contour_merge_line, out_feature_class=polygons_raw, cluster_tolerance="", attributes="ATTRIBUTES", label_features="")
 
-    arcpy.SpatialJoin_analysis(target_features=contour_polygons, join_features=contour_merge_line, out_feature_class=level_join_polygons, join_operation="JOIN_ONE_TO_ONE", join_type="KEEP_ALL", field_mapping="""Shape_Length "Shape_Length" false true true 8 Double 0 0 ,First,#,%(contour_polygons)s,Shape_Length,-1,-1;Shape_Area "Shape_Area" false true true 8 Double 0 0 ,First,#,%(contour_polygons)s,Shape_Area,-1,-1;Contour "Contour" true true false 8 Double 0 0 ,Max,#,%(contour_merge_line)s,Contour,-1,-1;Type "Type" true true false 4 Long 0 0 ,First,#,%(contour_merge_line)s,Type,-1,-1;Shape_Length_1 "Shape_Length_1" false true true 8 Double 0 0 ,First,#,%(contour_merge_line)s,Shape_Length,-1,-1""" % {'contour_polygons':contour_polygons,'contour_merge_line':contour_merge_line}, match_option="INTERSECT", search_radius="", distance_field_name="")
+    # Get the average elevation of each polygon, map these to their
+    # corresponding contour elevation, and use the OBJECTID to map these back to
+    # the polygon data. This process is 50x times faster than Spatial Join.
+    start = time.clock()
+    arcpy.CheckOutExtension('Spatial')
+    arcpy.gp.ZonalStatisticsAsTable_sa(polygons_raw, "OID", raster, polygon_raster_mean, "DATA", "MEAN")
+    arcpy.CheckInExtension('Spatial')
+    stop = time.clock()
+    print 'Time spent: %0.2f seconds' % (stop-start)
 
-    expression = 'NOT Contour = %f' % explicit_contour_list[-1] #Remove the contours created by the additional level.
-    arcpy.MakeFeatureLayer_management(in_features = level_join_polygons,out_layer = level_lyr,where_clause = expression)
+    table_dict = tableToDict(polygon_raster_mean,keyField = 'OID_')
+    polygons_dict = tableToDict(polygons_raw,keyField = 'OID')
+
+    bottom = explicit_contour_list[:-1]
+    top = explicit_contour_list[1:]
+
+    for k in table_dict:
+        for b,t in zip(bottom,top):
+            if table_dict[k]['MEAN']>b and table_dict[k]['MEAN']<t:
+                polygons_dict[k]['Contour'] = t
+                break
+
+    for k in polygons_dict:
+        if polygons_dict[k]['Contour']==explicit_contour_list[-1]:
+            polygons_dict.pop(k,None)
+
+
+    dictToTable(polygons_dict,os.path.split(polygons)[0],os.path.split(polygons)[1],makeTable = True,fields = ['OID','Contours','Area'])
 
     if isinstance(output_feature_class,arcpy.Geometry):
-        return arcpy.CopyFeatures_management(level_polygons_lyr,arcpy.Geometry())
+        return arcpy.CopyFeatures_management(polygons,arcpy.Geometry())
+    elif isinstance(output_feature_class,list):
+        return tableToDict(polygons) # Will pass output as a list when no keyField is passed as an argument.
     else:
-        arcpy.CopyFeatures_management(level_polygons_lyr,output_feature_class)
+        arcpy.CopyFeatures_management(polygons,output_feature_class)
 
 def changeFieldOrder(table,newTable,orderedFieldList):
     '''

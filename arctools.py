@@ -118,7 +118,7 @@ def dictToTable(dictionary, tablePath, table, method = 'insert', keyField = None
     isdict = False
     isgroupeddict = False
     #Straight list of dictionaries:
-    if isinstance(dictionary,list) and isinstance(dictionary[0],dict) and isinstance(dictionary,tuple):
+    if (isinstance(dictionary,list) or isinstance(dictionary,tuple)) and isinstance(dictionary[0],dict):
         islist = True
         dictionaryFrame = dictionary[0]
     #Dictionary of dictionaries:
@@ -420,7 +420,8 @@ def create_filled_contours(raster,output_feature_class,explicit_contour_list,cre
 
     table_oid_name = arcpy.Describe(polygon_raster_mean).OIDFieldName
 
-    table_dict = tableToDict(polygon_raster_mean,keyField = poly_oid_name + '_')
+    forreign_key = poly_oid_name + '_'
+    table_dict = tableToDict(polygon_raster_mean,keyField = forreign_key) # Create ditionary from table, with keyField as the dictionary keys.
 
     bottom = explicit_contour_list[:-1]
     top = explicit_contour_list[1:]
@@ -429,10 +430,8 @@ def create_filled_contours(raster,output_feature_class,explicit_contour_list,cre
     for k in table_dict:
         if table_dict[k]['MEAN'] > explicit_contour_list[-1]:
             table_dict[k]['MEAN'] = explicit_contour_list[-1]
-            print 'nisse'
         elif table_dict[k]['MEAN'] < explicit_contour_list[0]:
             table_dict[k]['MEAN'] = explicit_contour_list[0]
-            print 'troll'
         else:
             for b,t in zip(bottom,top):
                 if table_dict[k]['MEAN']>=b and table_dict[k]['MEAN']<t:

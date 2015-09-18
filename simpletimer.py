@@ -13,8 +13,13 @@ from __future__ import unicode_literals
 
 import time
 
-def ProgressTimer(object):
-    def __init__(self,total_count = None,message = ''):
+class ProgressTimer(object):
+    def __init__(self,total_count = None,message = '',sample_size = 0):
+        '''
+        Class for printing percentage progress and completion time estimates.
+        Sample size is the number of prec
+
+        '''
         self.message = message
         self.total_count = total_count
         self.time_start = time.clock()

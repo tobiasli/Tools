@@ -12,6 +12,7 @@ from __future__ import unicode_literals
 #-------------------------------------------------------------------------------
 
 import time
+import math
 
 class ProgressTimer(object):
     def __init__(self,total_count = None,message = ''):
@@ -24,12 +25,14 @@ class ProgressTimer(object):
         self.time_start = time.clock()
         self.count = 0
 
-    def print(self,message = ''):
+    def print(self,count = None, message = ''):
 
         if not message and self.message:
             message = self.message
 
-        self.count += 1
+        if not count:
+            self.count += 1
+
         current_time = time.clock()
 
         time_past = current_time-self.time_start
@@ -41,3 +44,15 @@ class ProgressTimer(object):
         percentage = (time_past/time_left)*100
 
         print('%(message)s: %(percentage)d/100: Est. Time left: %(hours)dh %(minutes)dm %(seconds)dm' % locals())
+
+
+class SimpleTimer(object):
+    def __init__(self):
+        '''
+        Class for simple timing of calls.
+
+        '''
+        self.time_start = time.clock()
+
+    def print(self):
+        print(time.clock()-self.time_start)

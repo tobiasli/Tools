@@ -14,10 +14,9 @@ from __future__ import unicode_literals
 import time
 
 class ProgressTimer(object):
-    def __init__(self,total_count = None,message = '',sample_size = 0):
+    def __init__(self,total_count = None,message = ''):
         '''
         Class for printing percentage progress and completion time estimates.
-        Sample size is the number of prec
 
         '''
         self.message = message

@@ -324,19 +324,21 @@ def tableToDict(table,sqlQuery = '', keyField = None, groupBy = None, fields = [
 
     with arcpy.da.SearchCursor(table,fields,where_clause = sqlQuery) as cursor:
         for row in cursor:
+
+            case_fields = fields
+
             if field_case == 'upper':
-                dictRow = OrderedDict(zip([f.upper() for f in fields],row))
+                case_fields = [f.upper() for f in fields]
             elif field_case == 'lower':
-                dictRow = OrderedDict(zip([f.lower() for f in fields],row))
-            else:
-                dictRow = OrderedDict(zip(fields,row))
+                case_fields = [f.lower() for f in fields]
+
+            dictRow = OrderedDict(zip(case_fields,row))
 
             if keyField:
                 output[dictRow[keyField]] = dictRow
             elif groupBy:
                 if not output.has_key(dictRow[groupBy]):
                     output[dictRow[groupBy]] = []
-
                 output[dictRow[groupBy]] += [dictRow]
             else:
                 output += [dictRow]

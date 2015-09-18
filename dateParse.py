@@ -1,4 +1,5 @@
 ﻿# -*- coding: utf-8 -*-
+from __future__ import unicode_literals
 '''
 Method dateParse.parse(string) returns a datetime-object for any reference to a
 time that lies within string. String can detect complex dates in any string.
@@ -46,71 +47,71 @@ class dateParse(object):
 
     def __init__(self):
         self.weekdays = OrderedDict([
-                    (u'mandag',0),
-                    (u'tirsdag',1),
-                    (u'onsdag',2),
-                    (u'torsdag',3),
-                    (u'fredag',4),
-                    (u'lørdag',5),
-                    (u'søndag',6),
-                    (u'man',0),
-                    (u'tir',1),
-                    (u'ons',2),
-                    (u'tor',3),
-                    (u'fre',4),
-                    (u'lør',5),
-                    (u'søn',6),
-                    (u'monday',0),
-                    (u'tuesday',1),
-                    (u'wednesday',2),
-                    (u'thursday',3),
-                    (u'friday',4),
-                    (u'saturday',5),
-                    (u'sunday',6),
-                    (u'mon',0),
-                    (u'tue',1),
-                    (u'wed',2),
-                    (u'thu',3),
-                    (u'fri',4),
-                    (u'sat',5),
-                    (u'sun',6),
+                    ('mandag',0),
+                    ('tirsdag',1),
+                    ('onsdag',2),
+                    ('torsdag',3),
+                    ('fredag',4),
+                    ('lørdag',5),
+                    ('søndag',6),
+                    ('man',0),
+                    ('tir',1),
+                    ('ons',2),
+                    ('tor',3),
+                    ('fre',4),
+                    ('lør',5),
+                    ('søn',6),
+                    ('monday',0),
+                    ('tuesday',1),
+                    ('wednesday',2),
+                    ('thursday',3),
+                    ('friday',4),
+                    ('saturday',5),
+                    ('sunday',6),
+                    ('mon',0),
+                    ('tue',1),
+                    ('wed',2),
+                    ('th',3),
+                    ('fri',4),
+                    ('sat',5),
+                    ('sun',6),
                     ])
 
         #Month variations with month number:
         self.months = OrderedDict([
-                        (u'januar', 1),
-                        (u'februar', 2),
-                        (u'mars', 3),
-                        (u'april', 4),
-                        (u'mai', 5),
-                        (u'juni', 6),
-                        (u'juli', 7),
-                        (u'august', 8),
-                        (u'september', 9),
-                        (u'oktober', 10),
-                        (u'november', 11),
-                        (u'desember', 12),
-                        (u'january', 1),
-                        (u'february', 2),
-                        (u'march', 3),
-                        (u'may', 5),
-                        (u'june', 6),
-                        (u'july', 7),
-                        (u'october', 10),
-                        (u'december', 12),
-                        (u'jan', 1),
-                        (u'feb', 2),
-                        (u'mar', 3),
-                        (u'apr', 4),
-                        (u'jun', 6),
-                        (u'jul', 7),
-                        (u'aug', 8),
-                        (u'sep', 9),
-                        (u'okt', 10),
-                        (u'nov', 11),
-                        (u'des', 12),
-                        (u'oct', 10),
-                        (u'dec', 12)
+                        ('januar', 1),
+                        ('februar', 2),
+                        ('mars', 3),
+                        ('april', 4),
+                        ('mai', 5),
+                        ('juni', 6),
+                        ('juli', 7),
+                        ('august', 8),
+                        ('september', 9),
+                        ('oktober', 10),
+                        ('november', 11),
+                        ('desember', 12),
+                        ('january', 1),
+                        ('february', 2),
+                        ('march', 3),
+                        ('may', 5),
+                        ('june', 6),
+                        ('july', 7),
+                        ('october', 10),
+                        ('december', 12),
+                        ('jan', 1),
+                        ('feb', 2),
+                        ('mar', 3),
+                        ('apr', 4),
+                        ('jun', 6),
+                        ('jul', 7),
+                        ('aug', 8),
+                        ('sep', 9),
+                        ('okt', 10),
+                        ('nov', 11),
+                        ('des', 12),
+                        ('oct', 10),
+                        ('dec', 12)
                         ])
 
         #Number of valid days in each month:
@@ -132,50 +133,50 @@ class dateParse(object):
         #Relative position in year. Numbers are the months corresponding to the
         #start of the relative position (i.e. Q1 = 1 not 3)
         self.relativeYears = {
-                    u'sommer(?:en)?':6,
-                    u'høst(?:en)?':9,
-                    u'vinter(?:en)?':12,
-                    u'vår(?:en)?':3,
-                    u'første kvartal':1,
-                    u'1. kvartal':1,
-                    u'Q1':1,
-                    u'andre kvartal':4,
-                    u'2. kvartal':4,
-                    u'Q2':4,
-                    u'tredje kvartal':7,
-                    u'3. kvartal':7,
-                    u'Q3':7,
-                    u'fjerde kvartal':10,
-                    u'4. kvartal':10,
-                    u'Q4':10,
-                    u'første halvdel':1,
-                    u'tidlig':1,
-                    u'starten av':1,
-                    u'andre halvdel':6,
-                    u'midten av':6,
-                    u'sent':10,
+                    'sommer(?:en)?':6,
+                    'høst(?:en)?':9,
+                    'vinter(?:en)?':12,
+                    'vår(?:en)?':3,
+                    'første kvartal':1,
+                    '1. kvartal':1,
+                    'Q1':1,
+                    'andre kvartal':4,
+                    '2. kvartal':4,
+                    'Q2':4,
+                    'tredje kvartal':7,
+                    '3. kvartal':7,
+                    'Q3':7,
+                    'fjerde kvartal':10,
+                    '4. kvartal':10,
+                    'Q4':10,
+                    'første halvdel':1,
+                    'tidlig':1,
+                    'starten av':1,
+                    'andre halvdel':6,
+                    'midten av':6,
+                    'sent':10,
                     }
 
         #Identification of typical century variations:
         self.centuries = [
-                     u'(\\d{2}00)[-\s]tallet',
-                     u'(\\d{2}).? århundre'
+                     '(\\d{2}00)[-\s]tallet',
+                     '(\\d{2}).? århundre'
                     ]
         #Identification of various relative positions in centuries, with the
         #corresponding year:
         self.relativeCenturies = {
-                        u'første halvdel av(?: det)?':0,
-                        u'første kvartal':0,
-                        u'andre kvartal':25,
-                        u'tredje kvartal':50,
-                        u'fjerde kvartal':75,
-                        u'tidlig (?:i|på)(?: det)?':0,
-                        u'starten av(?: det)?':0,
-                        u'andre halvdel av(?: det)?':50,
-                        u'midten av(?: det)?':50,
-                        u'sent på(?: det)?':90,
-                        u'slutten av(?: det)?':90,
-                        u'begynnelsen av(?: det)?':0,
+                        'første halvdel av(?: det)?':0,
+                        'første kvartal':0,
+                        'andre kvartal':25,
+                        'tredje kvartal':50,
+                        'fjerde kvartal':75,
+                        'tidlig (?:i|på)(?: det)?':0,
+                        'starten av(?: det)?':0,
+                        'andre halvdel av(?: det)?':50,
+                        'midten av(?: det)?':50,
+                        'sent på(?: det)?':90,
+                        'slutten av(?: det)?':90,
+                        'begynnelsen av(?: det)?':0,
                         }
 
         self.day = '%(day)s'
@@ -258,12 +259,12 @@ class dateParse(object):
         #Method has been rewritten to handle time as well as date.
         #Start by removing all time-of-day numbers (i.e. 14:02:37) from the string,
         #as these are difficult to handle otherwise:
-        #string = re.sub(ur'\d{2}:\d{2}(?::\d{2})?','',string)
+        #string = re.sub(r'\d{2}:\d{2}(?::\d{2})?','',string)
 
         #Check for simple, pure number dates:
-        dayFormat = ur'(?P<day>\d{2})'
-        monthFormat = ur'(?P<month>\d{2})'
-        yearFormat = ur'(?P<year>\d{4}|\d{2})'
+        dayFormat = r'(?P<day>\d{2})'
+        monthFormat = r'(?P<month>\d{2})'
+        yearFormat = r'(?P<year>\d{4}|\d{2})'
         simpleCombos = [[dayFormat,monthFormat,yearFormat],[yearFormat,monthFormat,dayFormat]]
         for combo in simpleCombos:
             pattern = '\D{1,2}?'.join(combo)
@@ -281,37 +282,37 @@ class dateParse(object):
                 patternPart = {}
 
                 if [True for c in combo if 'time' in c]:
-                    patternPart['time'] = ur'(?:(?:(?:kl)|(?:klokka)|(?:klokken))\D{1,2})?(?P<hour>\d{1,4})(?:\D(?P<minute>\d{2}))?(?:\D(?P<second>\d{2}))?'
+                    patternPart['time'] = r'(?:(?:(?:kl)|(?:klokka)|(?:klokken))\D{1,2})?(?P<hour>\d{1,4})(?:\D(?P<minute>\d{2}))?(?:\D(?P<second>\d{2}))?'
 
                 if [True for c in combo if 'relativeYear' in c]:
                      loopThrough = self.relativeYears
                      for Str,Num in loopThrough.items():
-                        patternPart['relativeYear'] = ur'(?P<month>(?i)%s)' % Str
-                        patternPart['year'] = ur'(?P<year>\d{4}|\d{2})'
+                        patternPart['relativeYear'] = r'(?P<month>(?i)%s)' % Str
+                        patternPart['year'] = r'(?P<year>\d{4}|\d{2})'
                         [match,date] = self.checkPattern(patternPart,combo,Num)
                         if match: break
 
                 elif [True for c in combo if 'relativeCentury' in c or 'century' in c]:
                      loopThrough = self.relativeCenturies
                      for Str,Num in loopThrough.items():
-                        patternPart['century'] = ur'(?P<century>(?i)%s)' % '|(?i)'.join(self.centuries)
-                        patternPart['relativeCentury'] = r'(?P<relativeCentury>(?i)%s)' % u'|(?i)'.join([Str])
+                        patternPart['century'] = r'(?P<century>(?i)%s)' % '|(?i)'.join(self.centuries)
+                        patternPart['relativeCentury'] = r'(?P<relativeCentury>(?i)%s)' % '|(?i)'.join([Str])
                         [match,date] = self.checkPattern(patternPart,combo,Num,centuryCheck = True)
                         if match: break
 
                 elif [True for c in combo if 'weekday' in c]:
                      loopThrough = self.weekdays
                      for Str,Num in loopThrough.items():
-                        patternPart['weekday'] = ur'(?P<weekday>(?i)%s)' % Str
+                        patternPart['weekday'] = r'(?P<weekday>(?i)%s)' % Str
                         [match,date] = self.checkPattern(patternPart,combo,Num)
                         if match: break
 
                 else:
                     loopThrough = self.months
                     for Str,Num in loopThrough.items():
-                        patternPart['day'] = ur'(?P<day>\d{1,2})'
-                        patternPart['month'] = ur'(?P<month>(?i)%s)' % u'|(?i)'.join([Str] + [ur'(?:^|(?<=[^:\d]))0?' + str(Num) + r'(?:(?=[^:\d])|$)'])
-                        patternPart['year'] = ur'(?P<year>\d{4}|\d{2})'
+                        patternPart['day'] = r'(?P<day>\d{1,2})'
+                        patternPart['month'] = r'(?P<month>(?i)%s)' % '|(?i)'.join([Str] + [r'(?:^|(?<=[^:\d]))0?' + str(Num) + r'(?:(?=[^:\d])|$)'])
+                        patternPart['year'] = r'(?P<year>\d{4}|\d{2})'
                         [match,date] = self.checkPattern(patternPart,combo,Num)
                         if match: break
                 if match:
@@ -327,7 +328,7 @@ class dateParse(object):
 
     def checkPattern(self,patternPart,combo,Num = 0,centuryCheck = False):
         #Run a pattern through the regular expression and return output.
-        pattern = u'(?:^|(?<=\D))' + u'(?=[^:\d])[^:\d]{1,4}?(?<=[^:\d])'.join(combo) % patternPart  + u'(?:(?=\D)|$)'
+        pattern = '(?:^|(?<=\D))' + '(?=[^:\d])[^:\d]{1,4}?(?<=[^:\d])'.join(combo) % patternPart  + '(?:(?=\D)|$)'
 
         r = re.compile(pattern)
         date = [found for found in r.finditer(self.string)]
@@ -416,7 +417,7 @@ class dateParse(object):
 
            if date.has_key('century'):
                  excerpt = re.findall('(?:' + '|'.join(self.centuries) + ')',date['century'])
-                 if re.findall(u'\\d{2}.? århundre',date['century']):
+                 if re.findall('\\d{2}.? århundre',date['century']):
                     #The first "århundre" starts with year 0, so we subtract to get the actual year:
                     correctCentury = -100
                  else:
@@ -441,12 +442,12 @@ class dateParse(object):
               else:
                    date['year'] = int(date['year']) + 2000 #Assumed this century.
 
-           if date.has_key('hour'):
-             if len(date['hour']) == 4:
-                date['minute'] = date['hour'][2:4]
-                date['hour'] = date['hour'][0:2]
-             date['hour'] = int(date['hour'])
-             if date['hour'] > 24 and date['hour'] < 0: match = False
+           if date.has_key('hor'):
+             if len(date['hor']) == 4:
+                date['minute'] = date['hor'][2:4]
+                date['hor'] = date['hor'][0:2]
+             date['hor'] = int(date['hor'])
+             if date['hor'] > 24 and date['hor'] < 0: match = False
 
              if date.has_key('minute'):
                 if not date['minute']:
@@ -462,7 +463,7 @@ class dateParse(object):
 
 
            for k in date.keys():
-            if not k in ['year','month','day','hour','minute','second']:
+            if not k in ['year','month','day','hor','minute','second']:
                 del date[k]
 
            return [match,date]
@@ -477,6 +478,6 @@ if __name__ == '__main__':
 
     parser = dateParse()
     start= timer.clock()
-    print parser.parse(string)
-    print 'Time spent: %0.6f' % (timer.clock()-start)
+    print(parser.parse(string))
+    print('Time spent: %0.6f' % (timer.clock()-start))
 

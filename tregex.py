@@ -74,8 +74,8 @@ def similarity(string1,string2):
 if __name__ == u'__main__':
     tallForm = u'(?:(?P<teller>\d+)/(?P<nevner>\d+)|(?P<tall>\d+(?:[\.,]\d+)?))'
     tallForm2 = u'(?:(\d+)/(\d+)|(\d+(?:[\.,]\d+)?))'
-    print name(tallForm,'1/4  5   5.4')
-    print find(tallForm2,'1/4  5   5.4')
-    print find(tallForm,'1/4  5   5.4')
-    print group(tallForm,'1/4  5   5.4')
-    print smart(tallForm2,'1/4  5   5.4')
+    print(name(tallForm,'1/4  5   5.4'))
+    print(find(tallForm2,'1/4  5   5.4'))
+    print(find(tallForm,'1/4  5   5.4'))
+    print(group(tallForm,'1/4  5   5.4'))
+    print(smart(tallForm2,'1/4  5   5.4'))

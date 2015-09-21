@@ -44,9 +44,12 @@ class ProgressTimer(object):
         hours = int(time_left/3600)
         minutes = int((time_left-hours*3600)/60)
         seconds = int(math.fmod(time_left,60))
-        percentage = (time_past/time_left)*100
+        try:
+            percentage = (time_past/time_left)*100
+        except ZeroDivisionError:
+            percentage = 0
 
-        return '%(message)s: %(percentage)d/100: Est. Time left: %(hours)dh %(minutes)dm %(seconds)dm' % locals()
+        return '%(message)s: %(percentage)3d%%: ETA: %(hours)3dh %(minutes)2dm %(seconds)2.0dm' % locals()
 
     def print(self,count = None, message = ''):
         print(string(self,count, message))

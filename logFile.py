@@ -31,11 +31,11 @@ Copyright:   (c) tobiasl 2014
 import datetime as time
 import os
 import smtplib
-from email.MIMEMultipart import MIMEMultipart
-from email.MIMEBase import MIMEBase
-from email.MIMEText import MIMEText
-from email import Encoders
-from email.Utils import formatdate
+##from email.MIMEMultipart import MIMEMultipart
+##from email.MIMEBase import MIMEBase
+##from email.MIMEText import MIMEText
+##from email import Encoders
+##from email.Utils import formatdate
 
 class Message(object):
     # Message object that contains all information regarding messages for a

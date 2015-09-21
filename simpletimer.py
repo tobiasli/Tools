@@ -25,7 +25,10 @@ class ProgressTimer(object):
         self.time_start = time.clock()
         self.count = 0
 
-    def print(self,count = None, message = ''):
+    def __str__(self):
+        return self.string()
+
+    def string(self,count = None, message = ''):
 
         if not message and self.message:
             message = self.message
@@ -43,7 +46,10 @@ class ProgressTimer(object):
         seconds = int(math.fmod(time_left,60))
         percentage = (time_past/time_left)*100
 
-        print('%(message)s: %(percentage)d/100: Est. Time left: %(hours)dh %(minutes)dm %(seconds)dm' % locals())
+        return '%(message)s: %(percentage)d/100: Est. Time left: %(hours)dh %(minutes)dm %(seconds)dm' % locals()
+
+    def print(self,count = None, message = ''):
+        print(string(self,count, message))
 
 
 class SimpleTimer(object):

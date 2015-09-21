@@ -132,7 +132,7 @@ class Log(object):
 
         print(self._compileLogText_(title))
 
-    def printLogToFile(self,path,namebase,title,completeName = False,errorTag = False):
+    def printLogToFile(self,path,namebase,title = 'Log',completeName = False,errorTag = False):
         # Create file. "name" is only the name base. Time stamp and file type are
         # added by the script. If completeName = True, then the filename in
         # "name" is taken as is, without adding timestamp or checking for
@@ -159,14 +159,10 @@ class Log(object):
         if not completeName:
            namebase = self._getFileNameIncrement_(path, namebase)
 
-
-
-        self.logFile = file(os.path.join(path, namebase), 'w')
+        self.logFile = open(os.path.join(path, namebase), 'w')
 
         try:
             self.logFile.write(self._compileLogText_(title))
-        except:
-               pass
         finally:
             self.logFile.close()
 
@@ -269,8 +265,10 @@ class Log(object):
         logText += '\nNumber of error messages logged: %d' % len([message for message in self.m if message.error])
         logText += '\nEnd of file.'
 
-        if not isinstance(logText,unicode):
-           logText = logText.decode('utf-8')
+        try:
+            logText = logText.decode('utf-8')
+        except:
+            pass
 
         return logText
 

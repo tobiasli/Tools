@@ -49,6 +49,9 @@ from collections import OrderedDict,Counter
 # Properties
 overwriteExistingOutput = False #True allows methods to overwrite existing output.
 
+def snap_polygons(adjust_feature,snap_environment_feature):
+    """Method for snapping a polygon to adjesent"""
+
 def dictToTable(dictionary, tablePath, table, method = 'insert', keyField = None, tableKey = None, fields = [],makeTable = False,featureClassType = '', spatialReference = ''):
     '''
     Method for taking a dictionary and writing the values to a given table

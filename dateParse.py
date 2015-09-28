@@ -247,9 +247,9 @@ class dateParse(object):
         else:
             self.referenceDate = referenceDate
 
-        #Make sure all strings are unicode:
-        if not isinstance(string,unicode):
-            string = string.decode('utf-8')
+##        #Make sure all strings are unicode:
+##        if not isinstance(string,unicode):
+##            string = string.decode('utf-8')
 
 
         self.string = string
@@ -353,7 +353,7 @@ class dateParse(object):
                        return[match,date]
 
            #Get first upcoming weekday
-           if date.has_key('weekday'):
+           if 'weekday' in date:
                 if re.findall('^\d+$',date['weekday']):
                     dayOfTheWeek = int(date['weekday'])
                 else:
@@ -369,7 +369,7 @@ class dateParse(object):
                 date['year'] = str(candidate.year)
 
            #Check if days are found:
-           if not date.has_key('day'):
+           if not 'day' in date:
               date['day'] = 1
            elif not date['day']:
                 date['day'] = 1
@@ -377,7 +377,7 @@ class dateParse(object):
                 date['day'] = int(date['day'])
 
            #Get month number:
-           if not date.has_key('month'):
+           if not 'month' in date:
               date['month'] = 1
            elif not date['month']:
                 date['month'] = 1
@@ -399,7 +399,7 @@ class dateParse(object):
                   return [match,date]
 
             #If only month/day is found, find first upcoming date matching the day/month combo.
-           if not date.has_key('year'):
+           if not 'year' in date:
                 today = datetime.datetime.today()
                 currentYear = today.year
                 if today.month > date['month']:
@@ -409,13 +409,13 @@ class dateParse(object):
                         currentYear += 1
                 date['year'] = str(currentYear) #Convert to string to not have to hamper code further down.
 
-           if date.has_key('relativeCentury'):
+           if 'relativeCentury' in date:
               if date['relativeCentury']:
                  date['relativeCentury'] = Num
               else: date['relativeCentury'] = 0
            else: date['relativeCentury'] = 0
 
-           if date.has_key('century'):
+           if 'century' in date:
                  excerpt = re.findall('(?:' + '|'.join(self.centuries) + ')',date['century'])
                  if re.findall('\\d{2}.? århundre',date['century']):
                     #The first "århundre" starts with year 0, so we subtract to get the actual year:
@@ -442,28 +442,28 @@ class dateParse(object):
               else:
                    date['year'] = int(date['year']) + 2000 #Assumed this century.
 
-           if date.has_key('hor'):
-             if len(date['hor']) == 4:
-                date['minute'] = date['hor'][2:4]
-                date['hor'] = date['hor'][0:2]
-             date['hor'] = int(date['hor'])
-             if date['hor'] > 24 and date['hor'] < 0: match = False
+           if 'hour'in date:
+             if len(date['hour']) == 4:
+                date['minute'] = date['hour'][2:4]
+                date['hour'] = date['hour'][0:2]
+             date['hour'] = int(date['hour'])
+             if date['hour'] > 24 and date['hour'] < 0: match = False
 
-             if date.has_key('minute'):
+             if 'minute' in date:
                 if not date['minute']:
                     date['minute'] = 0
                 date['minute'] = int(date['minute'])
                 if date['minute'] > 60 and date['minute'] < 0: match = False
 
-                if date.has_key('second'):
+                if 'second' in date:
                   if not date['second']:
                     date['second'] = 0
                   date['second'] = int(date['second'])
                   if date['second'] > 60 and date['second'] < 0: match = False
 
 
-           for k in date.keys():
-            if not k in ['year','month','day','hor','minute','second']:
+           for k in list(date.keys()):
+            if not k in ['year','month','day','hour','minute','second']:
                 del date[k]
 
            return [match,date]
@@ -471,13 +471,12 @@ class dateParse(object):
 
 
 if __name__ == '__main__':
-    string = '14. mai 2012'
-    string = '14.05.2012 kl 1306'
-    string = 'mandag 14:53'
-    string = 'saturday'
+    strings = ['14. mai 2012','14.05.2012 kl 1306','mandag 14:53','saturday']
 
     parser = dateParse()
-    start= timer.clock()
-    print(parser.parse(string))
-    print('Time spent: %0.6f' % (timer.clock()-start))
+
+    for string in strings:
+        start= timer.clock()
+        print(parser.parse(string))
+        print('\tTime spent: %0.6f' % (timer.clock()-start))
 

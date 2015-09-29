@@ -12,10 +12,10 @@ import re
 import difflib
 
 defaultFlag = re.UNICODE | re.DOTALL
-namedGroupDetection = u'(\(\?P<\w+>)'
-namedGroupReferenceDetection = u'\(\?\(\w+\)'
+namedGroupDetection = '(\(\?P<\w+>)'
+namedGroupReferenceDetection = '\(\?\(\w+\)'
 
-def match(pattern,string,output = u'smart',flags = defaultFlag):
+def match(pattern,string,output = 'smart',flags = defaultFlag):
     #Returns the named groups from a pattern match directly, isted of going
     #through the regular parsing.
     r = re.compile(pattern,flags)
@@ -23,21 +23,21 @@ def match(pattern,string,output = u'smart',flags = defaultFlag):
     if match:
         returnList = []
 
-        if output == u'smart':
+        if output == 'smart':
             if match[0].groupdict():
-                output = u'name'
+                output = 'name'
             elif match[0].groups():
-                output = u'group'
+                output = 'group'
             else:
-                output = u''
+                output = ''
 
         if not output:
             for m in match:
                 returnList += [m.group()]
-        elif output == u'name':
+        elif output == 'name':
             for m in match:
                 returnList += [m.groupdict()]
-        elif output == u'group':
+        elif output == 'group':
             for m in match:
                 returnList += [m.groups()]
         else:
@@ -48,32 +48,32 @@ def match(pattern,string,output = u'smart',flags = defaultFlag):
         return []
 
 def name(pattern,string,flags = defaultFlag):
-    return match(pattern,string,output = u'name',flags = flags)
+    return match(pattern,string,output = 'name',flags = flags)
 
 def find(pattern,string,flags = defaultFlag):
     #Only return strings matching pattern, not considering any grouping. Will
     #remove any named groups from pattern before compiling.
     pattern = re.sub(namedGroupDetection,'(',pattern) #Remove named groups.
     pattern = re.sub(namedGroupReferenceDetection,'(',pattern) #Remove named groups.
-    return match(pattern,string,output = u'',flags = flags)
+    return match(pattern,string,output = '',flags = flags)
 
 def group(pattern,string,flags = defaultFlag):
     #Only return strings matching groups. Will remove any named groups from
     #pattern before compiling.
 
     pattern = re.sub(namedGroupDetection,'(',pattern) #Remove named groups.
-    return match(pattern,string,output = u'group',flags = flags)
+    return match(pattern,string,output = 'group',flags = flags)
 
 def smart(pattern,string,flags = defaultFlag):
-    return match(pattern,string,output = u'smart',flags = flags)
+    return match(pattern,string,output = 'smart',flags = flags)
 
 def similarity(string1,string2):
     #Returns a score based on the degree of match between to strings:
     return difflib.SequenceMatcher(None,string1,string2).ratio()
 
-if __name__ == u'__main__':
-    tallForm = u'(?:(?P<teller>\d+)/(?P<nevner>\d+)|(?P<tall>\d+(?:[\.,]\d+)?))'
-    tallForm2 = u'(?:(\d+)/(\d+)|(\d+(?:[\.,]\d+)?))'
+if __name__ == '__main__':
+    tallForm = '(?:(?P<teller>\d+)/(?P<nevner>\d+)|(?P<tall>\d+(?:[\.,]\d+)?))'
+    tallForm2 = '(?:(\d+)/(\d+)|(\d+(?:[\.,]\d+)?))'
     print(name(tallForm,'1/4  5   5.4'))
     print(find(tallForm2,'1/4  5   5.4'))
     print(find(tallForm,'1/4  5   5.4'))

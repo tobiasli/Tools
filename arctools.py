@@ -43,10 +43,14 @@ import re
 import datetime
 import arcpy
 import time
+import random
 from collections import OrderedDict,Counter
 
 # Properties
 overwriteExistingOutput = False #True allows methods to overwrite existing output.
+
+def snap_polygons(adjust_feature,snap_environment_feature):
+    """Method for snapping a polygon to adjesent"""
 
 def dictToTable(dictionary, tablePath, table, method = 'insert', keyField = None, tableKey = None, fields = [],makeTable = False,featureClassType = '', spatialReference = ''):
     '''
@@ -113,34 +117,34 @@ def dictToTable(dictionary, tablePath, table, method = 'insert', keyField = None
 
     shapeIdentification = '^shape(@\w*)?$'
 
-    #Get the field names from the first list in the
+    # Get the field names from the first list in the
     islist = False
     isdict = False
     isgroupeddict = False
-    #Straight list of dictionaries:
-    if isinstance(dictionary,list) and isinstance(dictionary[0],dict) and isinstance(dictionary,tuple):
+    # Straight list of dictionaries:
+    if (isinstance(dictionary,list) or isinstance(dictionary,tuple)) and isinstance(dictionary[0],dict):
         islist = True
         dictionaryFrame = dictionary[0]
-    #Dictionary of dictionaries:
-    elif (isinstance(dictionary,dict) or isinstance(dictionary,OrderedDict)) and (isinstance(dictionary.values()[0],dict) or isinstance(dictionary.values()[0],OrderedDict)):
+    # Dictionary of dictionaries:
+    elif (isinstance(dictionary,dict) or isinstance(dictionary,OrderedDict)) and (isinstance(list(dictionary.values())[0],dict) or isinstance(list(dictionary.values())[0],OrderedDict)):
         isdict = True
-        dictionaryFrame = dictionary.values()[0]
-    #Dictionary of grouped dictionaries (dictionary with a list of dictionaries that usually have a common attribute.
-    elif (isinstance(dictionary,dict) or isinstance(dictionary,OrderedDict)) and (isinstance(dictionary.values()[0],list) or isinstance(dictionary.values()[0],tuple)) and (isinstance(dictionary.values()[0][0],dict) or isinstance(dictionary.values()[0][0],OrderedDict)):
+        dictionaryFrame = list(dictionary.values())[0]
+    # Dictionary of grouped dictionaries (dictionary with a list of dictionaries that usually have a common attribute.
+    elif (isinstance(dictionary,dict) or isinstance(dictionary,OrderedDict)) and (isinstance(list(dictionary.values())[0],list) or isinstance(list(dictionary.values())[0],tuple)) and (isinstance(list(dictionary.values())[0][0],dict) or isinstance(list(dictionary.values())[0][0],OrderedDict)):
         isgroupeddict = True
-        dictionaryFrame = dictionary.values()[0][0]
+        dictionaryFrame = list(dictionary.values())[0][0]
     else:
         raise Exception('Unknown structure for input argument [dictionary].')
 
-    dictionaryFields = dictionaryFrame.keys()
+    dictionaryFields = list(dictionaryFrame.keys())
 
-    #Convert dictionaries and grouped dictionaries to lists for entry as table rows:
+    # Convert dictionaries and grouped dictionaries to lists for entry as table rows:
     if isdict:
         dictionary = [row for row in dictionary.values()]
     if isgroupeddict:
         dictionary = [item for sublist in dictionary.values() for item in sublist]
 
-    #Check integrity of fields, and create new dictionary containing only the selected fields.
+    # Check integrity of fields, and create new dictionary containing only the selected fields.
     if fields:
         if isinstance(fields,str):
             fields = [fields]
@@ -187,7 +191,7 @@ def dictToTable(dictionary, tablePath, table, method = 'insert', keyField = None
         #nothing else is found.
         for k,v in dictionaryFrame.items():
             fieldType = 'TEXT'
-            length = ''
+            length = 50
             if re.findall(shapeIdentification,k):
                 continue #Skip create field if shape.
             elif k == 'GLOBALID':
@@ -247,7 +251,7 @@ def dictToTable(dictionary, tablePath, table, method = 'insert', keyField = None
 
     return operationCount
 
-def tableToDict(table,sqlQuery = '', keyField = None, groupBy = None, fields = []):
+def tableToDict(table,sqlQuery = '', keyField = None, groupBy = None, fields = [],field_case = ''):
     '''
     Method for creating a dictionary or a list from a table. With only 'table'
     as input, the method will return a list containing dictionaries for each
@@ -271,6 +275,8 @@ def tableToDict(table,sqlQuery = '', keyField = None, groupBy = None, fields = [
                                   are grouped by.
           fields          list    List of field names that should be included
                                   in dictionary. Default gets all fields.
+          field_case      str     Indicate if the dictionary field names
+                                  should be forced "upper" or "lower" case.
 
     Output
           output          dict/list   Dictionary or list, depending on wether
@@ -297,6 +303,17 @@ def tableToDict(table,sqlQuery = '', keyField = None, groupBy = None, fields = [
         if not len(set(uniqueList)) == len(uniqueList):
             Exception('When keyField is used as input, the column needs to have unique values. To group rows by the contents of a column, use groupBy.')
 
+    if keyField and field_case:
+        if field_case == 'upper':
+            keyField = keyField.upper()
+        elif field_case == 'lower':
+            keyField = keyField.lower()
+
+    if groupBy and field_case:
+        if field_case == 'upper':
+            groupBy = groupBy.upper()
+        elif field_case == 'lower':
+            groupBy = groupBy.lower()
 
     if fields:
         if isinstance(fields,str):
@@ -310,14 +327,21 @@ def tableToDict(table,sqlQuery = '', keyField = None, groupBy = None, fields = [
 
     with arcpy.da.SearchCursor(table,fields,where_clause = sqlQuery) as cursor:
         for row in cursor:
-            dictRow = OrderedDict(zip(fields,row))
+
+            case_fields = fields
+
+            if field_case == 'upper':
+                case_fields = [f.upper() for f in fields]
+            elif field_case == 'lower':
+                case_fields = [f.lower() for f in fields]
+
+            dictRow = OrderedDict(zip(case_fields,row))
 
             if keyField:
                 output[dictRow[keyField]] = dictRow
             elif groupBy:
                 if not output.has_key(dictRow[groupBy]):
                     output[dictRow[groupBy]] = []
-
                 output[dictRow[groupBy]] += [dictRow]
             else:
                 output += [dictRow]
@@ -380,13 +404,13 @@ def create_filled_contours(raster,output_feature_class,explicit_contour_list,cre
 ####
 
 
-    print 'Create contours'
+    print('Create contours')
     arcpy.CheckOutExtension('Spatial')
     arcpy.sa.ContourWithBarriers(raster,contour_line,explicit_only = True, in_explicit_contours = explicit_contour_list)
     arcpy.CheckInExtension('Spatial')
 
 
-    print 'Create fishnet'
+    print('Create fishnet')
     desc = arcpy.Describe(raster)
     XMin = desc.extent.XMin+desc.meanCellWidth
     XMax = desc.extent.XMax-desc.meanCellWidth
@@ -396,11 +420,11 @@ def create_filled_contours(raster,output_feature_class,explicit_contour_list,cre
     arcpy.CreateFishnet_management(out_feature_class=fishnet_line, origin_coord='%0.4f %0.4f' % (XMin,YMin), y_axis_coord='%0.4f %0.4f' % (XMin,YMin+10), cell_width="0", cell_height="0", number_rows="1", number_columns="1", corner_coord='%0.4f %0.4f' % (XMax,YMax), labels="LABELS", template='%0.4f %0.4f %0.4f %0.4f' % (XMin,YMin,XMax,YMax), geometry_type="POLYLINE")
     arcpy.DefineProjection_management(fishnet_line,desc.spatialReference)
 
-    print 'Merge'
+    print('Merge')
     arcpy.env.overwriteOutput = True
     arcpy.Merge_management(inputs=';'.join([contour_line,fishnet_line]), output=contour_merge_line, field_mappings="""Contour "Contour" true true false 8 Double 0 0 ,First,#,%(contour_line)s,Contour,-1,-1;Type "Type" true true false 4 Long 0 0 ,First,#,%(contour_line)s,Type,-1,-1;;Shape_Length "Shape_Length" false true true 8 Double 0 0 ,First,#,%(contour_line)s,Shape_Length,-1,-1,%(fishnet_line)s,Shape_Length,-1,-1""" % {'fishnet_line':fishnet_line,'contour_line':contour_line})
 
-    print 'Feature to polygon'
+    print('Feature to polygon')
     arcpy.FeatureToPolygon_management(in_features=contour_merge_line, out_feature_class=polygons_raw, cluster_tolerance="", attributes="ATTRIBUTES", label_features="")
 
     arcpy.AddField_management(polygons_raw,'Contour','DOUBLE')
@@ -411,7 +435,7 @@ def create_filled_contours(raster,output_feature_class,explicit_contour_list,cre
     # Get the average elevation of each polygon, map these to their
     # corresponding contour elevation, and use the OBJECTID to map these back to
     # the polygon data. This process is 50x times faster than Spatial Join.
-    print 'Zonal statistics'
+    print('Zonal statistics')
     start = time.clock()
     arcpy.CheckOutExtension('Spatial')
     arcpy.gp.ZonalStatisticsAsTable_sa(polygons_raw, poly_oid_name, raster, polygon_raster_mean, "DATA", "MEAN")
@@ -420,7 +444,8 @@ def create_filled_contours(raster,output_feature_class,explicit_contour_list,cre
 
     table_oid_name = arcpy.Describe(polygon_raster_mean).OIDFieldName
 
-    table_dict = tableToDict(polygon_raster_mean,keyField = poly_oid_name + '_')
+    forreign_key = poly_oid_name + '_'
+    table_dict = tableToDict(polygon_raster_mean,keyField = forreign_key) # Create ditionary from table, with keyField as the dictionary keys.
 
     bottom = explicit_contour_list[:-1]
     top = explicit_contour_list[1:]
@@ -429,10 +454,8 @@ def create_filled_contours(raster,output_feature_class,explicit_contour_list,cre
     for k in table_dict:
         if table_dict[k]['MEAN'] > explicit_contour_list[-1]:
             table_dict[k]['MEAN'] = explicit_contour_list[-1]
-            print 'nisse'
         elif table_dict[k]['MEAN'] < explicit_contour_list[0]:
             table_dict[k]['MEAN'] = explicit_contour_list[0]
-            print 'troll'
         else:
             for b,t in zip(bottom,top):
                 if table_dict[k]['MEAN']>=b and table_dict[k]['MEAN']<t:
@@ -451,11 +474,11 @@ def create_filled_contours(raster,output_feature_class,explicit_contour_list,cre
             cursor.updateRow(row)
 
     if found_warning:
-        print 'WARNING: Some contours were too close together to be handled properly. Check Contour = None in resulting table.'
+        print('WARNING: Some contours were too close together to be handled properly. Check Contour = None in resulting table.')
 
-    print 'Homebrew Spatial Join: %0.2f seconds' % (stop-start)
-    print 'Regular Spatial Join: %0.2f seconds' % 19473
-    print 'Improvement: %0.0fx' % (19473/(stop-start))
+    print('Homebrew Spatial Join: %0.2f seconds' % (stop-start))
+    print('Regular Spatial Join: %0.2f seconds' % 1947)
+    print('Improvement: %0.0fx' % (19473/(stop-start)))
 
     if isinstance(output_feature_class,arcpy.Geometry):
         return arcpy.CopyFeatures_management(polygons_raw,arcpy.Geometry())
@@ -590,7 +613,7 @@ if __name__ == '__main__':
 
     a = tableToDict(os.path.join(path,old))
     print('Before rename:')
-    print a
+    print(a)
 
     print('\nField mapping:')
     print(fieldMapping)

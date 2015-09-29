@@ -31,11 +31,11 @@ Copyright:   (c) tobiasl 2014
 import datetime as time
 import os
 import smtplib
-from email.MIMEMultipart import MIMEMultipart
-from email.MIMEBase import MIMEBase
-from email.MIMEText import MIMEText
-from email import Encoders
-from email.Utils import formatdate
+##from email.MIMEMultipart import MIMEMultipart
+##from email.MIMEBase import MIMEBase
+##from email.MIMEText import MIMEText
+##from email import Encoders
+##from email.Utils import formatdate
 
 class Message(object):
     # Message object that contains all information regarding messages for a
@@ -75,7 +75,7 @@ class Message(object):
         return '%s%s%s%s' % (line, stamp, er, text)
 
 
-class MessageHandler(object):
+class Log(object):
     #Creates a logfile instance that handles messages and can store them in a
     #text file.
 
@@ -105,7 +105,7 @@ class MessageHandler(object):
 
         self.m.extend([Message(text, timestamp, newLine)])
         if toScreen or self.dynamicPrintToScreen:
-           print self.m[-1].getMessage()
+           print(self.m[-1].getMessage())
 
     def addError(self, text, timestamp=True, newLine=True, toScreen = False):
         # Add error message to log. Only difference to addMessage is the
@@ -122,7 +122,7 @@ class MessageHandler(object):
         self.m.extend([Message(text, timestamp, newLine, error=True)])
         self.errorCount += 1
         if toScreen or self.dynamicPrintToScreen:
-           print self.m[-1].getMessage()
+           print(self.m[-1].getMessage())
 
     def printLogToScreen(self,title = 'Run log'):
         # Print complete log to screen.
@@ -130,9 +130,9 @@ class MessageHandler(object):
         # Input:
         #       title           string, The title of the log.
 
-        print self._compileLogText_(title)
+        print(self._compileLogText_(title))
 
-    def printLogToFile(self,path,namebase,title,completeName = False,errorTag = False):
+    def printLogToFile(self,path,namebase,title = 'Log',completeName = False,errorTag = False):
         # Create file. "name" is only the name base. Time stamp and file type are
         # added by the script. If completeName = True, then the filename in
         # "name" is taken as is, without adding timestamp or checking for
@@ -159,72 +159,68 @@ class MessageHandler(object):
         if not completeName:
            namebase = self._getFileNameIncrement_(path, namebase)
 
-
-
-        self.logFile = file(os.path.join(path, namebase), 'w')
+        self.logFile = open(os.path.join(path, namebase), 'w')
 
         try:
             self.logFile.write(self._compileLogText_(title))
-        except:
-               pass
         finally:
             self.logFile.close()
 
-    def printLogToMail(self,mailserver, sender, recipient, reply_to, subject, title, attachment = None):
-        # Send compiled file with optional attatchments via email to a specified recipient.
-        #
-        # Input:
-        #       mailserver        string, The mailserver used for the exchange.
-        #       sender            string, Account the email is sent from.
-        #       recipient         string/list,   Who the email is sent to. Can
-        #                                        be single string or list.
-        #       reply_to          string, Who to reply to.
-        #       subject           string, The subject of the email.
-        #       title             string, The title of the log contained in the
-        #                                 email body.
-        #       attachment        string/list, The path to any attachment that
-        #                                      should be included in the email.
-        #                                      Single string or list of strings.
-
-        msg = MIMEMultipart()
-
-        msg['Date'] = formatdate(localtime=True)
-        msg['From'] = sender
-        msg['To'] = recipient
-        msg['Reply-to'] = reply_to
-        msg['Subject'] = subject
-
-        msg.attach(MIMEText(self._compileLogText_(title)))
-
-        #Add attachments:
-        if isinstance(attachment,str):
-           msg = self._loadAttachment_(msg,attachment)
-        elif isinstance(attachment,list):
-             for att in attachment:
-                 msg = self._loadAttachment_(msg,att)
-
-        # Establish an SMTP object and connect to your mail server
-        s = smtplib.SMTP()
-        s.connect(mailserver)
-        # Send the email - real from, real to, extra headers and content ...
-        a = s.sendmail(sender,recipient.split(','), msg.as_string())
-        s.close()
-
-    def _loadAttachment_(self,msg,attachment):
-        #Take the file path "attachment" and add content to msg. Requires that
-        #msg is a multipart MIME object.
-        part = MIMEBase('application', "octet-stream")
-
-        fid = open(attachment,"rb")
-        try:
-            part.set_payload(fid.read())
-
-            Encoders.encode_base64(part)
-            part.add_header('Content-Disposition', 'attachment; filename="%s"' % os.path.basename(attachment))
-            msg.attach(part)
-        finally:
-                fid.close()
-        return msg
+##    def printLogToMail(self,mailserver, sender, recipient, reply_to, subject, title, attachment = None):
+##        # Send compiled file with optional attatchments via email to a specified recipient.
+##        #
+##        # Input:
+##        #       mailserver        string, The mailserver used for the exchange.
+##        #       sender            string, Account the email is sent from.
+##        #       recipient         string/list,   Who the email is sent to. Can
+##        #                                        be single string or list.
+##        #       reply_to          string, Who to reply to.
+##        #       subject           string, The subject of the email.
+##        #       title             string, The title of the log contained in the
+##        #                                 email body.
+##        #       attachment        string/list, The path to any attachment that
+##        #                                      should be included in the email.
+##        #                                      Single string or list of strings.
+##
+##        msg = MIMEMultipart()
+##
+##        msg['Date'] = formatdate(localtime=True)
+##        msg['From'] = sender
+##        msg['To'] = recipient
+##        msg['Reply-to'] = reply_to
+##        msg['Subject'] = subject
+##
+##        msg.attach(MIMEText(self._compileLogText_(title)))
+##
+##        #Add attachments:
+##        if isinstance(attachment,str):
+##           msg = self._loadAttachment_(msg,attachment)
+##        elif isinstance(attachment,list):
+##             for att in attachment:
+##                 msg = self._loadAttachment_(msg,att)
+##
+##        # Establish an SMTP object and connect to your mail server
+##        s = smtplib.SMTP()
+##        s.connect(mailserver)
+##        # Send the email - real from, real to, extra headers and content ...
+##        a = s.sendmail(sender,recipient.split(','), msg.as_string())
+##        s.close()
+##
+##    def _loadAttachment_(self,msg,attachment):
+##        #Take the file path "attachment" and add content to msg. Requires that
+##        #msg is a multipart MIME object.
+##        part = MIMEBase('application', "octet-stream")
+##
+##        fid = open(attachment,"rb")
+##        try:
+##            part.set_payload(fid.read())
+##
+##            Encoders.encode_base64(part)
+##            part.add_header('Content-Disposition', 'attachment; filename="%s"' % os.path.basename(attachment))
+##            msg.attach(part)
+##        finally:
+##                fid.close()
+##        return msg
 
     def _addTimeStampToFileName_(self,name):
         #Add initialization time stamp to file name:
@@ -269,8 +265,10 @@ class MessageHandler(object):
         logText += '\nNumber of error messages logged: %d' % len([message for message in self.m if message.error])
         logText += '\nEnd of file.'
 
-        if not isinstance(logText,unicode):
-           logText = logText.decode('utf-8')
+        try:
+            logText = logText.decode('utf-8')
+        except:
+            pass
 
         return logText
 
@@ -278,7 +276,7 @@ class MessageHandler(object):
 
 if __name__ == '__main__':
     #Debug test run
-    log = MessageHandler()
+    log = Log()
     log.addMessage('User = Tobias', timestamp=False)
     log.addMessage(r', Workspace = C:\Tobias\Prosjekter\RA\KTMS_XML_IMPORT', timestamp=False, newLine=False)
     log.addMessage('test')

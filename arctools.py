@@ -262,11 +262,9 @@ def dictToTable(dictionary, table, method = 'insert', keyField = None, tableKey 
 
 def tableToDict(table,sqlQuery = '', keyField = None, groupBy = None, fields = [],field_case = '', ordered = False):
     '''
-    Method for creating a dictionary or a list from a table. With only 'table'
-    as input, the method will return a list containing dictionaries for each
-    table row, with keys matching the column names of the table. If keyField
-    is passed, the method will return a dictionary using the values of column
-    [keyField] as dictionary keys.
+    Method for creating a dictionary or a list from a table. Default to
+    list(dict(),dict(),...). If keyField is passed, the method will return
+    dict(dict(),dict(),...) with the values of keyField
 
     If table is a feature class and fields is empty, the SHAPE@ token is used
     to return the entire geometry.
@@ -277,11 +275,14 @@ def tableToDict(table,sqlQuery = '', keyField = None, groupBy = None, fields = [
           sqlQuery        str     SQL query to perform a selection of the data
                                   within the table.
           keyField        str     Name of column containing non-empty, unique
-                                  values identifying each row. If non-unique,
-                                  rows are grouped according to the values of
-                                  this column.
-          groupBy         str     Column name containing values that all rows
-                                  are grouped by.
+                                  values identifying each row. Output is a
+                                  dictionary with the contents of keyField as
+                                  keys.
+          groupBy         str     Name of column containing non-unique values.
+                                  Output is a dictionary with the contents of
+                                  groupBy as keys containing lists of
+                                  dictionaries for each object matching the
+                                  group.
           fields          list    List of field names that should be included
                                   in dictionary. Default gets all fields.
           field_case      str     Indicate if the dictionary field names
@@ -291,9 +292,9 @@ def tableToDict(table,sqlQuery = '', keyField = None, groupBy = None, fields = [
                                   field order as in the table.
 
     Output
-          output          dict/list   Dictionary or list, depending on wether
-                                      keyField is passed as an argument or
-                                      not.
+          output          Default:          [{},{},...]
+                          keyField:         {{},{},...}
+                          groupBy:          {[{},{},...],[{},{},...],...}
     '''
 
     arcpy.env.overwriteOutput = overwriteExistingOutput

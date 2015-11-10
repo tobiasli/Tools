@@ -621,13 +621,5 @@ def renameFields(table,newTable,fieldMappingDict):
 
 
 if __name__ == '__main__':
-    overwriteExistingOutput = True
-
-    folder = r'M:\GIS_Data\Hydrology\Projects\Hydrology_masterdata\HydMet_Station_p\Met.no_09.2015_eklima'
-    file = os.path.join(folder,'met_stations.dbf')
-    dictionary = [{'nisse':1},{'nisse':2}]
-
-    dictToTable(dictionary,file)
-    d = tableToDict(os.path.join(folder,file),fields = ['nisse'])
-
-    d == dictionary
+    from test import test_arctools
+    test_arctools.run()

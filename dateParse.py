@@ -468,15 +468,17 @@ class dateParse(object):
 
            return [match,date]
 
+parser = dateParse()
+
+def parse(string):
+    return parser.parse(string)
 
 
 if __name__ == '__main__':
     strings = ['14. mai 2012','14.05.2012 kl 1306','mandag 14:53','saturday']
 
-    parser = dateParse()
-
     for string in strings:
         start= timer.clock()
-        print(parser.parse(string))
+        print(parse(string))
         print('\tTime spent: %0.6f' % (timer.clock()-start))
 

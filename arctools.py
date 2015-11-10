@@ -49,10 +49,7 @@ from collections import OrderedDict,Counter
 # Properties
 overwriteExistingOutput = False #True allows methods to overwrite existing output.
 
-def snap_polygons(adjust_feature,snap_environment_feature):
-    """Method for snapping a polygon to adjesent"""
-
-def dictToTable(dictionary, tablePath, table, method = 'insert', keyField = None, tableKey = None, fields = [],makeTable = False,featureClassType = '', spatialReference = ''):
+def dictToTable(dictionary, table, method = 'insert', keyField = None, tableKey = None, fields = [],makeTable = True,featureClassType = '', spatialReference = ''):
     '''
     Method for taking a dictionary and writing the values to a given table
     assuming that dictionary keys and table fields match. Can also perform
@@ -67,10 +64,7 @@ def dictToTable(dictionary, tablePath, table, method = 'insert', keyField = None
         dictionary      dict/list Dictionary of dictionaries or list of
                                 dictionaries which is inserted into table.
                                 Assumes that key names and value types match table schema.
-        tablePath       str     Path to the table that data is inserted
-                                into.
-        table           str     Assumes that key names and value types match
-                                table schema.
+        table           str     Path to output table.
         method          str     String defining operation performed on
                                 table.
                                     insert = Append dictionary to table.
@@ -115,7 +109,9 @@ def dictToTable(dictionary, tablePath, table, method = 'insert', keyField = None
     assert not (method == 'delete' and not (dictionaryKey and tableKey))
     assert dictionary
 
-    shapeIdentification = '^shape(@\w*)?$'
+    shapeIdentification = '(?i)^shape(@\w*)?$'
+    modifyTable = 'in_memory\\temporary_dataset'
+    outputDataset = table
 
     # Get the field names from the first list in the
     islist = False
@@ -176,45 +172,42 @@ def dictToTable(dictionary, tablePath, table, method = 'insert', keyField = None
                 else:
                     raise Exception('spatialReference argument not passed, and input dictionary shape field %s does not have a spatialReference attribute' % field)
 
-    #Create table/feature class if makeTable == True.
-    if makeTable:
-        if arcpy.Exists(os.path.join(tablePath,table)) and overwriteExistingOutput:
-            arcpy.Delete_management(os.path.join(tablePath,table))
+    # Create modifiable table. (Do not write to actual output until end of method).
+    if featureClass:
+        result = arcpy.CreateFeatureclass_management(os.path.split(modifyTable)[0],os.path.split(modifyTable)[1],geometry_type = featureClassType, spatial_reference = spatialReference)
+    else:
+        result = arcpy.CreateTable_management(os.path.split(modifyTable)[0],os.path.split(modifyTable)[1])
 
-        if featureClass:
-            arcpy.CreateFeatureclass_management(tablePath,table,geometry_type = featureClassType, spatial_reference = spatialReference)
-        else:
-            arcpy.CreateTable_management(tablePath,table)
+    modifyTable = str(result) # Get the actual path to the output, as the in_memory output might change depending on environment.
 
-        #Loop through key/value pairs and create fields according to the contents
-        #of the first item in the dictionary. Default field type is text if
-        #nothing else is found.
-        for k,v in dictionaryFrame.items():
-            fieldType = 'TEXT'
-            length = 50
-            if re.findall(shapeIdentification,k):
-                continue #Skip create field if shape.
-            elif k == 'GLOBALID':
-                fieldType = 'GUID'
-            elif isinstance(v,int):
-                fieldType = 'LONG'
-            elif isinstance(v,str) or isinstance(v,unicode):
-                if len(v) > length:
-                    length = len(v)
-            elif isinstance(v,float):
-                fieldType = 'DOUBLE'
-            elif isinstance(v,datetime.datetime):
-                fieldType = 'DATE'
-            try:
-                arcpy.AddField_management(os.path.join(tablePath,table),k,fieldType,field_length = length)
-            except:
-                if k.lower() == 'objectid':
-                    continue
-                else:
-                    Exception('Failed to create field %s of type %s in table %s',(k,fieldType,table))
+    #Loop through key/value pairs and create fields according to the contents
+    #of the first item in the dictionary. Default field type is text if
+    #nothing else is found.
+    for k,v in dictionaryFrame.items():
+        fieldType = 'TEXT'
+        length = 50
+        if re.findall(shapeIdentification,k):
+            continue #Skip create field if shape.
+        elif k == 'GLOBALID':
+            fieldType = 'GUID'
+        elif isinstance(v,int):
+            fieldType = 'LONG'
+        elif isinstance(v,str):
+            if len(v) > length:
+                length = len(v)
+        elif isinstance(v,float):
+            fieldType = 'DOUBLE'
+        elif isinstance(v,datetime.datetime):
+            fieldType = 'DATE'
+        try:
+            arcpy.AddField_management(modifyTable,k,fieldType,field_length = length)
+        except:
+            if k.lower() == 'objectid':
+                continue
+            else:
+                Exception('Failed to create field %s of type %s in table %s',(k,fieldType,table))
 
-
-    tableFieldNames = [field.name for field in arcpy.ListFields(os.path.join(tablePath,table))]
+    tableFieldNames = [field.name for field in arcpy.ListFields(modifyTable)]
 
     operationCount = 0
 
@@ -223,14 +216,17 @@ def dictToTable(dictionary, tablePath, table, method = 'insert', keyField = None
             Exception('Dictionary field %s is not present in table %s.',[field,table])
 
     if method == 'insert':
-        with arcpy.da.InsertCursor(os.path.join(tablePath,table),dictionaryFields) as cursor:
+        with arcpy.da.InsertCursor(modifyTable,dictionaryFields) as cursor:
             for d in dictionary:
-                values = [d[key] for key in cursor.fields]
+                try:
+                    values = [d[key] for key in cursor.fields]
+                except:
+                    pass
                 operationCount += 1
                 cursor.insertRow(values)
 
     elif method == 'update':
-        with arcpy.da.UpdateCursor(os.path.join(tablePath,table),dictionaryFields) as cursor:
+        with arcpy.da.UpdateCursor(modifyTable,dictionaryFields) as cursor:
             for row in cursor:
                 t = dict(zip(dictionaryFields,row))
                 for d in dictionary:
@@ -239,7 +235,7 @@ def dictToTable(dictionary, tablePath, table, method = 'insert', keyField = None
                         cursor.updateRow([d[key] for key in cursor.fields])
 
     elif method == 'delete':
-        with arcpy.da.UpdateCursor(os.path.join(tablePath,table),dictionaryFields) as cursor:
+        with arcpy.da.UpdateCursor(modifyTable,dictionaryFields) as cursor:
             for row in cursor:
                 t = dict(zip(dictionaryFields,row))
                 for d in dictionary:
@@ -249,15 +245,26 @@ def dictToTable(dictionary, tablePath, table, method = 'insert', keyField = None
     else:
         Exception('Operation %s not valid. Valid options are "insert","update" and "delete".',method)
 
+    # Check existence of output:
+    if makeTable:
+        if arcpy.Exists(outputDataset) and overwriteExistingOutput:
+            arcpy.Delete_management(outputDataset)
+
+        # Copy temp to final location:
+        if featureClass:
+            arcpy.CopyFeatures_management(modifyTable,outputDataset)
+        else:
+            arcpy.CopyRows_management(modifyTable,outputDataset)
+
+    arcpy.Delete_management(modifyTable)
+
     return operationCount
 
-def tableToDict(table,sqlQuery = '', keyField = None, groupBy = None, fields = [],field_case = ''):
+def tableToDict(table,sqlQuery = '', keyField = None, groupBy = None, fields = [],field_case = '', ordered = False):
     '''
-    Method for creating a dictionary or a list from a table. With only 'table'
-    as input, the method will return a list containing dictionaries for each
-    table row, with keys matching the column names of the table. If keyField
-    is passed, the method will return a dictionary using the values of column
-    [keyField] as dictionary keys.
+    Method for creating a dictionary or a list from a table. Default to
+    list(dict(),dict(),...). If keyField is passed, the method will return
+    dict(dict(),dict(),...) with the values of keyField
 
     If table is a feature class and fields is empty, the SHAPE@ token is used
     to return the entire geometry.
@@ -268,20 +275,26 @@ def tableToDict(table,sqlQuery = '', keyField = None, groupBy = None, fields = [
           sqlQuery        str     SQL query to perform a selection of the data
                                   within the table.
           keyField        str     Name of column containing non-empty, unique
-                                  values identifying each row. If non-unique,
-                                  rows are grouped according to the values of
-                                  this column.
-          groupBy         str     Column name containing values that all rows
-                                  are grouped by.
+                                  values identifying each row. Output is a
+                                  dictionary with the contents of keyField as
+                                  keys.
+          groupBy         str     Name of column containing non-unique values.
+                                  Output is a dictionary with the contents of
+                                  groupBy as keys containing lists of
+                                  dictionaries for each object matching the
+                                  group.
           fields          list    List of field names that should be included
                                   in dictionary. Default gets all fields.
           field_case      str     Indicate if the dictionary field names
                                   should be forced "upper" or "lower" case.
+          ordered         bool    Specifies if output is dict (False) or
+                                  OrderedDict (True) with the same row order and
+                                  field order as in the table.
 
     Output
-          output          dict/list   Dictionary or list, depending on wether
-                                      keyField is passed as an argument or
-                                      not.
+          output          Default:          [{},{},...]
+                          keyField:         {{},{},...}
+                          groupBy:          {[{},{},...],[{},{},...],...}
     '''
 
     arcpy.env.overwriteOutput = overwriteExistingOutput
@@ -291,8 +304,13 @@ def tableToDict(table,sqlQuery = '', keyField = None, groupBy = None, fields = [
     if keyField and groupBy:
         Exception('Method takes either keyField or groupBy, not both.')
 
+    if ordered:
+        dict_func = OrderedDict
+    else:
+        dict_func = dict
+
     if keyField or groupBy:
-        output = OrderedDict()
+        output = dict_func()
 
     if keyField:
         #Check if contents of field is unique:
@@ -335,7 +353,7 @@ def tableToDict(table,sqlQuery = '', keyField = None, groupBy = None, fields = [
             elif field_case == 'lower':
                 case_fields = [f.lower() for f in fields]
 
-            dictRow = OrderedDict(zip(case_fields,row))
+            dictRow = dict_func(zip(case_fields,row))
 
             if keyField:
                 output[dictRow[keyField]] = dictRow
@@ -603,23 +621,5 @@ def renameFields(table,newTable,fieldMappingDict):
 
 
 if __name__ == '__main__':
-    print('Module run from file. Test commencing.')
-
-    overwriteExistingOutput = True
-    path = 'M:\\GIS_Data\\Hydrology\\Personal_folders\\Tobias\\arctools_test\\arc_test.gdb'
-    old = 'test'
-    new = 'test2'
-    fieldMapping = {'b':'second_field','nisse':'fjes'}
-
-    a = tableToDict(os.path.join(path,old))
-    print('Before rename:')
-    print(a)
-
-    print('\nField mapping:')
-    print(fieldMapping)
-
-    renameFields(os.path.join(path,old),os.path.join(path,new),fieldMapping)
-
-    b = tableToDict(os.path.join(path,new))
-    print('\nAfter rename')
-    print(b)
+    from test import test_arctools
+    test_arctools.run()

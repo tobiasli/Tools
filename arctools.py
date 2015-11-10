@@ -109,8 +109,8 @@ def dictToTable(dictionary, table, method = 'insert', keyField = None, tableKey 
     assert not (method == 'delete' and not (dictionaryKey and tableKey))
     assert dictionary
 
-    shapeIdentification = '^shape(@\w*)?$'
-    tempDataset = 'in_memory\_dataset'
+    shapeIdentification = '(?i)^shape(@\w*)?$'
+    modifyTable = 'in_memory\\temporary_dataset'
     outputDataset = table
 
     # Get the field names from the first list in the
@@ -172,42 +172,40 @@ def dictToTable(dictionary, table, method = 'insert', keyField = None, tableKey 
                 else:
                     raise Exception('spatialReference argument not passed, and input dictionary shape field %s does not have a spatialReference attribute' % field)
 
-    #Create table/feature class if makeTable == True.
-    if makeTable:
-        modifyTable = tempDataset
-        if featureClass:
-            arcpy.CreateFeatureclass_management(os.path.split(modifyTable)[0],os.path.split(modifyTable)[1],geometry_type = featureClassType, spatial_reference = spatialReference)
-        else:
-            arcpy.CreateTable_management(os.path.split(modifyTable)[0],os.path.split(modifyTable)[1])
-
-        #Loop through key/value pairs and create fields according to the contents
-        #of the first item in the dictionary. Default field type is text if
-        #nothing else is found.
-        for k,v in dictionaryFrame.items():
-            fieldType = 'TEXT'
-            length = 50
-            if re.findall(shapeIdentification,k):
-                continue #Skip create field if shape.
-            elif k == 'GLOBALID':
-                fieldType = 'GUID'
-            elif isinstance(v,int):
-                fieldType = 'LONG'
-            elif isinstance(v,str):
-                if len(v) > length:
-                    length = len(v)
-            elif isinstance(v,float):
-                fieldType = 'DOUBLE'
-            elif isinstance(v,datetime.datetime):
-                fieldType = 'DATE'
-            try:
-                arcpy.AddField_management(modifyTable,k,fieldType,field_length = length)
-            except:
-                if k.lower() == 'objectid':
-                    continue
-                else:
-                    Exception('Failed to create field %s of type %s in table %s',(k,fieldType,table))
+    # Create modifiable table. (Do not write to actual output until end of method).
+    if featureClass:
+        result = arcpy.CreateFeatureclass_management(os.path.split(modifyTable)[0],os.path.split(modifyTable)[1],geometry_type = featureClassType, spatial_reference = spatialReference)
     else:
-        modifyTable = outputDataset
+        result = arcpy.CreateTable_management(os.path.split(modifyTable)[0],os.path.split(modifyTable)[1])
+
+    modifyTable = str(result) # Get the actual path to the output, as the in_memory output might change depending on environment.
+
+    #Loop through key/value pairs and create fields according to the contents
+    #of the first item in the dictionary. Default field type is text if
+    #nothing else is found.
+    for k,v in dictionaryFrame.items():
+        fieldType = 'TEXT'
+        length = 50
+        if re.findall(shapeIdentification,k):
+            continue #Skip create field if shape.
+        elif k == 'GLOBALID':
+            fieldType = 'GUID'
+        elif isinstance(v,int):
+            fieldType = 'LONG'
+        elif isinstance(v,str):
+            if len(v) > length:
+                length = len(v)
+        elif isinstance(v,float):
+            fieldType = 'DOUBLE'
+        elif isinstance(v,datetime.datetime):
+            fieldType = 'DATE'
+        try:
+            arcpy.AddField_management(modifyTable,k,fieldType,field_length = length)
+        except:
+            if k.lower() == 'objectid':
+                continue
+            else:
+                Exception('Failed to create field %s of type %s in table %s',(k,fieldType,table))
 
     tableFieldNames = [field.name for field in arcpy.ListFields(modifyTable)]
 
@@ -257,6 +255,8 @@ def dictToTable(dictionary, table, method = 'insert', keyField = None, tableKey 
             arcpy.CopyFeatures_management(modifyTable,outputDataset)
         else:
             arcpy.CopyRows_management(modifyTable,outputDataset)
+
+    arcpy.Delete_management(modifyTable)
 
     return operationCount
 

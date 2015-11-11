@@ -180,9 +180,10 @@ def dictToTable(dictionary, table, method = 'insert', keyField = None, tableKey 
 
     modifyTable = str(result) # Get the actual path to the output, as the in_memory output might change depending on environment.
 
-    #Loop through key/value pairs and create fields according to the contents
-    #of the first item in the dictionary. Default field type is text if
-    #nothing else is found.
+    # Add fields to table.
+    # Loop through key/value pairs and create fields according to the contents
+    # of the first item in the dictionary. Default field type is text if
+    # nothing else is found.
     for k,v in dictionaryFrame.items():
         fieldType = 'TEXT'
         length = 50
@@ -206,22 +207,21 @@ def dictToTable(dictionary, table, method = 'insert', keyField = None, tableKey 
                 continue
             else:
                 Exception('Failed to create field %s of type %s in table %s',(k,fieldType,table))
-
+  
+    # Double check output fields with dictionary keys:
     tableFieldNames = [field.name for field in arcpy.ListFields(modifyTable)]
-
-    operationCount = 0
 
     for field in dictionaryFields: #Get the fields from the first entry in the dictionary.
         if not field in tableFieldNames:
             Exception('Dictionary field %s is not present in table %s.',[field,table])
 
+    operationCount = 0
+    
+    # Modify table:
     if method == 'insert':
         with arcpy.da.InsertCursor(modifyTable,dictionaryFields) as cursor:
             for d in dictionary:
-                try:
-                    values = [d[key] for key in cursor.fields]
-                except:
-                    pass
+                values = [d[key] for key in cursor.fields]
                 operationCount += 1
                 cursor.insertRow(values)
 

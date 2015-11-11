@@ -11,7 +11,7 @@
 import unittest
 import os
 PATH = os.path.dirname(__file__)
-TEST_GDB = os.path.join(PATH,r'test_arctools_bin\test.gdb')
+TEST_GDB = os.path.join(PATH,r'bin\test.gdb')
 
 DATASETS = ['feature_class','geodatabase_table']
 
@@ -47,3 +47,6 @@ def run():
 
 if __name__ == '__main__':
     run()
+
+
+

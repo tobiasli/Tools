@@ -207,7 +207,7 @@ def dictToTable(dictionary, table, method = 'insert', keyField = None, tableKey 
                 continue
             else:
                 Exception('Failed to create field %s of type %s in table %s',(k,fieldType,table))
-  
+
     # Double check output fields with dictionary keys:
     tableFieldNames = [field.name for field in arcpy.ListFields(modifyTable)]
 
@@ -216,7 +216,7 @@ def dictToTable(dictionary, table, method = 'insert', keyField = None, tableKey 
             Exception('Dictionary field %s is not present in table %s.',[field,table])
 
     operationCount = 0
-    
+
     # Modify table:
     if method == 'insert':
         with arcpy.da.InsertCursor(modifyTable,dictionaryFields) as cursor:
@@ -621,5 +621,9 @@ def renameFields(table,newTable,fieldMappingDict):
 
 
 if __name__ == '__main__':
+    import sys
+    import os
+    sys.path = [os.path.dirname(__file__)] + sys.path
+
     from test import test_arctools
     test_arctools.run()

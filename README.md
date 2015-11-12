@@ -1,4 +1,6 @@
 # Tools
+[![Stories in Ready](https://badge.waffle.io/tobiasli/Tools.svg?label=ready&title=Verified%20issues)](http://waffle.io/tobiasli/Tools)
+
 Suite of tools for making my Python-day easier.
 
 ### tregex

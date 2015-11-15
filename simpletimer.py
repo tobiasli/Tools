@@ -44,15 +44,16 @@ class ProgressTimer(object):
         hours = int(time_left/3600)
         minutes = int((time_left-hours*3600)/60)
         seconds = int(math.fmod(time_left,60))
-        try:
-            percentage = (time_past/time_left)*100
-        except ZeroDivisionError:
-            percentage = 0
+##        try:
+##            percentage = (time_past/time_left)*100
+##        except ZeroDivisionError:
+##            percentage = 0
+        percentage = self.count/self.total_count*100
 
         return '%(message)s: %(percentage)3d%%: ETA: %(hours)3dh %(minutes)2dm %(seconds)2.0dm' % locals()
 
     def print(self,count = None, message = ''):
-        print(string(self,count, message))
+        print(str(self))
 
 
 class SimpleTimer(object):
@@ -65,3 +66,7 @@ class SimpleTimer(object):
 
     def print(self):
         print(time.clock()-self.time_start)
+
+if __name__ == '__main__':
+    from tests import test_simpletimer
+    test_simpletimer.run()

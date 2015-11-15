@@ -16,5 +16,9 @@ If the user has a pattern with named groups, but only wants a simple match, <b>f
 
 ### simpletimer
 Two simple timer classes that can print the time to see how fast any process is running.
-- SimpleTimer: Very simple timer that starts a clock at construction, and can print time since construction.
-- ProgressTimer: Starts time at initiation along with the number of steps being calculated. Prints the progress in %, along with ETA.
+
+<b>SimpleTimer</b>: Very simple timer that starts a clock at construction, and can print time since construction.
+<b>ProgressTimer</b>: Starts time at initiation along with the number of steps being calculated. Prints the progress in %, along with ETA.
+
+### logFile
+Simple logging class, with printing to file or send emails with attatchments.

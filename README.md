@@ -14,7 +14,7 @@ If the user has a pattern with named groups, but only wants a simple match, <b>f
 
 <b>similarity</b>: Takes two strings and returns a score based on how similar the two strings are. Uses difflib.
 
-### dateParse
-Class for parsing dates from arbitrary strings.
-
-<b>parse</b>: Extremely flexible method for creating datetime objects from string formated dates. Very strong date detection, but at the cost of slow speed. Could do with some optimization.
+### simpletimer
+Two simple timer classes that can print the time to see how fast any process is running.
+- SimpleTimer: Very simple timer that starts a clock at construction, and can print time since construction.
+- ProgressTimer: Starts time at initiation along with the number of steps being calculated. Prints the progress in %, along with ETA.

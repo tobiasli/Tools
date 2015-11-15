@@ -15,7 +15,7 @@ import sys
 import os
 import time
 
-sys.path = [os.path.split(os.path.split(os.path.realpath(__file__))[0])[0]] + sys.path
+sys.path = [os.path.split(os.path.split(os.path.realpath(__file__))[0])[0] + os.path.sep] + sys.path
 
 class TestSimpletimerModule(unittest.TestCase):
     def test_SimpleTimer(self):

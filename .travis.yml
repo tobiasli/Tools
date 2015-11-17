@@ -3,7 +3,13 @@ python:
     - "3.4"
 before_install:
     - pip install pytest pytest-cov
+install:  
+  - pip install coveralls  # Add me to install python-coveralls
 script:
     - py.test
+    - coverage run ./tests/all_tests.py
+after_success:  
+  - coveralls                     # Add me to upload reports to coveralls.io
+
 notifications:
     email: False

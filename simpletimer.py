@@ -65,7 +65,10 @@ class SimpleTimer(object):
         self.time_start = time.clock()
 
     def print(self):
-        print(time.clock()-self.time_start)
+        print(self.time())
+
+    def time(self):
+        return time.clock()-self.time_start
 
 if __name__ == '__main__':
     from tests import test_simpletimer

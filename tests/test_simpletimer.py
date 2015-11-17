@@ -25,7 +25,7 @@ class TestSimpletimerModule(unittest.TestCase):
 
         for i in range(100):
             time.sleep(0.001)
-            timer.print()
+            self.assertTrue(isinstance(timer.time(), float))
 
     def test_ProgressTimer(self):
         import simpletimer

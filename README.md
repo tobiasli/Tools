@@ -1,6 +1,7 @@
 # Tools
 [![Stories in Ready](https://badge.waffle.io/tobiasli/Tools.svg?label=ready&title=backlog)](http://waffle.io/tobiasli/Tools)<br/>
-[![Build Status](https://travis-ci.org/tobiasli/Tools.svg?branch=master)](https://travis-ci.org/tobiasli/Tools)
+[![Build Status](https://travis-ci.org/tobiasli/Tools.svg?branch=master)](https://travis-ci.org/tobiasli/Tools)<br/>
+[![Coverage Status](https://coveralls.io/repos/tobiasli/Tools/badge.svg?branch=master&service=github)](https://coveralls.io/github/tobiasli/Tools?branch=master)
 
 Suite of tools for making my Python-day easier.
 

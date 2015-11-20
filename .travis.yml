@@ -12,4 +12,4 @@ after_success:
   - coveralls                     # Add me to upload reports to coveralls.io
 
 notifications:
-    email: False
+    email: True

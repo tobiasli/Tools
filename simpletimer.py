@@ -115,22 +115,30 @@ class SimpleTimer(object):
 
         '''
         self.time_start = time.clock()
+        self.message = message
+
+    def __str__(self):
+        return self.represent()
 
     def __repr__(self):
-        checkpoint = self.time()
-        if message:
-            return '%s: %f' % (message, checkpoint)
-        else:
-            return '%f' % checkpoint
+        return self.represent()
 
     def time(self):
         return time.clock()-self.time_start
 
-    def print(self):
-        print(self)
+    def represent(self, message = ''):
+        checkpoint = self.time()
 
-    def __str__(self):
-        return self.__repr__()
+        if message:
+            return '%s: %f' % (message, checkpoint)
+        elif self.message:
+            return '%s: %f' % (self.message, checkpoint)
+        else:
+            return '%f' % checkpoint
+
+    def print(self, message = ''):
+        print(self.represent(message = message))
+
 
 if __name__ == '__main__':
     from tests import test_simpletimer

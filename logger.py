@@ -22,6 +22,7 @@ Copyright:   (c) tobiasl 2014
 2014.10.23 TL    Added error tag to printFile. If ther are errors, and errorTag
                  equals True, then the file name is appended with '_error' (before
                  numbering indexes).
+
 -------------------------------------------------------------------------------
 '''
 

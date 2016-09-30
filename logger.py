@@ -1,18 +1,15 @@
 ﻿# -*- coding: utf-8 -*-
 '''
 -------------------------------------------------------------------------------
-Name:        logFile
+Name:        logger
 Purpose:     Class for the handling of errors and messages. Contains methods
              for printing messages to file, screen, and send via email.
              Important to have the print to file/screen/email command within
              a try/finally clause to make sure that errors are returned before
              the program shuts down.
-
 Author:      tobiasl
-
 Created:     26.03.2014
 Copyright:   (c) tobiasl 2014
-
 --- History:
 2014.03.27 TL    First stable version. Further updates should include classes
                  to export messages to various formats. First off is .txt.
@@ -25,6 +22,7 @@ Copyright:   (c) tobiasl 2014
 2014.10.23 TL    Added error tag to printFile. If ther are errors, and errorTag
                  equals True, then the file name is appended with '_error' (before
                  numbering indexes).
+
 -------------------------------------------------------------------------------
 '''
 
@@ -50,24 +48,28 @@ class Message(object):
         self.newline = newline
         self.error = error
 
-    def getMessage(self):
+    def getMessage(self, newline = None):
         #Returns all text in message object as one ready formatted string.
+        #The newline argument can override the newline of the message object.
         message = ''
         if isinstance(self.text,list):
            for text in self.text:
-               message += self._compile_(text)
+               message += self._compile_(text, newline)
         else:
-             message += self._compile_(self.text)
+             message += self._compile_(self.text, newline)
         return message
 
-    def _compile_(self,text):
+    def _compile_(self,text, newline = None):
         #Creates a ready formatted print string.
         #text = unicode(text, "UTF-8")
         stamp = ''
-        if self.timestamp: stamp = '%s - ' % self.time.strftime('%Y.%m.%d %H:%M:%S')
+        if self.timestamp: stamp = '%s-' % self.time.strftime('%Y.%m.%d %H:%M:%S')
 
         line = ''
-        if self.newline: line = '\n'
+
+        if isinstance(newline,type(None)):
+            newline = self.newline
+        if newline: line = '\n'
 
         er = ''
         if self.error: er = 'Error: '
@@ -79,7 +81,7 @@ class Log(object):
     #Creates a logfile instance that handles messages and can store them in a
     #text file.
 
-    def __init__(self,dynamicPrintToScreen = False):
+    def __init__(self,dynamicPrintToScreen = False, timestamp = True):
         #File is the base name of the log file. The name will have a timestamp
         #appended, and the name will be incremented if there are several log
         #files with the same timestamp.
@@ -91,9 +93,10 @@ class Log(object):
         self.m = []  #List of Message objects.
         self.init = time.datetime.now()
         self.dynamicPrintToScreen = dynamicPrintToScreen
+        self.timestamp = timestamp
         self.errorCount = 0
 
-    def addMessage(self, text, timestamp=True, newLine=True,toScreen = False):
+    def addMessage(self, text, timestamp=None, newLine=True,toScreen = False):
         #Add message to log.
         #
         # Input:
@@ -102,12 +105,12 @@ class Log(object):
         #       timestamp       boolean, Add time stamp to message.
         #       newLine         boolean, Write message to new line in file
         #                                (True), or append to current (False).
-
+        if timestamp is None: timestamp = self.timestamp
         self.m.extend([Message(text, timestamp, newLine)])
         if toScreen or self.dynamicPrintToScreen:
-           print(self.m[-1].getMessage())
+           print(self.m[-1].getMessage(newline = False))
 
-    def addError(self, text, timestamp=True, newLine=True, toScreen = False):
+    def addError(self, text, timestamp=None, newLine=True, toScreen = False):
         # Add error message to log. Only difference to addMessage is the
         # error = True, but the method is included for readability between
         # errors and messages.
@@ -118,11 +121,18 @@ class Log(object):
         #       timestamp       boolean, Add time stamp to message.
         #       newLine         boolean, Write message to new line in file
         #                                (True), or append to current (False).
-
+        if timestamp is None: timestamp = self.timestamp
         self.m.extend([Message(text, timestamp, newLine, error=True)])
         self.errorCount += 1
         if toScreen or self.dynamicPrintToScreen:
-           print(self.m[-1].getMessage())
+           print(self.m[-1].getMessage(newline = False))
+
+    def returnLogAsString(self,title = 'Run log'):
+        # Return entire log as text:
+        #
+        # Input:
+        #       title           string, The title of the log.
+        return self._compileLogText_(title)
 
     def printLogToScreen(self,title = 'Run log'):
         # Print complete log to screen.
@@ -287,4 +297,3 @@ if __name__ == '__main__':
     log.addMessage('test', timestamp=False)
     log.addMessage(['This is a test.', 'A really big test'])
     log.printLogToScreen('Dette er en ordentlig test.')
-

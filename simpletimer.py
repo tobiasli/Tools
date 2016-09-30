@@ -109,18 +109,36 @@ class ProgressTimer(object):
 
 
 class SimpleTimer(object):
-    def __init__(self):
+    def __init__(self, message = ''):
         '''
         Class for simple timing of calls.
 
         '''
         self.time_start = time.clock()
+        self.message = message
 
-    def print(self):
-        print(self.time())
+    def __str__(self):
+        return self.represent()
+
+    def __repr__(self):
+        return self.represent()
 
     def time(self):
         return time.clock()-self.time_start
+
+    def represent(self, message = ''):
+        checkpoint = self.time()
+
+        if message:
+            return '%s: %f' % (message, checkpoint)
+        elif self.message:
+            return '%s: %f' % (self.message, checkpoint)
+        else:
+            return '%f' % checkpoint
+
+    def print(self, message = ''):
+        print(self.represent(message = message))
+
 
 if __name__ == '__main__':
     from tests import test_simpletimer

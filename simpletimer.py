@@ -104,7 +104,7 @@ class ProgressTimer(object):
             percentage, hours, minutes, seconds = self.calculate(count)
 
         time = datetime.datetime.now() + datetime.timedelta(hours=hours, minutes=minutes, seconds=seconds)
-        oclock = time.strftime('HH:MM')
+        oclock = time.strftime('%H:%M')
 
         return '%(message)s%(percentage)3d%%: ETA in: %(hours)3dh %(minutes)2dm %(seconds)2.0ds (%(oclock)s)' % locals()
 

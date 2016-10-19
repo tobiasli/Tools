@@ -23,7 +23,11 @@ class ProgressTimer(object):
 
         '''
 
-        if sample_size and sample_size/total_count > 0.7:
+        assert isinstance(total_count, int)
+        assert isinstance(sample_size, (type(None), int))
+        assert isinstance(message, str)
+
+        if sample_size and sample_size/total_count > 0.7 and total_count > 100:
             warnings.warn('Progress timer sample_size is 0.7 if total item count. Revize for speed.')
 
         self.total_count = total_count
@@ -57,7 +61,7 @@ class ProgressTimer(object):
 
         time_sample = self.time_sample[-1] - self.time_sample[0]
         time_past = current_time - self.time_start
-        time_left = time_sample*self.total_count/len(self.time_sample)-time_past    # Assumes time_past/total_time == count/total_count
+        time_left = time_sample*self.total_count/len(self.time_sample)-time_past  # Assumes time_past/total_time == count/total_count
 
         time_left = max([time_left, 0])
 
@@ -70,27 +74,36 @@ class ProgressTimer(object):
         return percentage, hours, minutes, seconds
 
     def calculate(self, count=None):
-        if not count:
+        assert isinstance(count, (type(None), int))
+        if count is None:
             self.count += 1
         else:
             self.count = count
 
-        current_time = time.clock()
+        if self.count == 0:
+            percentage = 0
+            hours = 0
+            minutes = 0
+            seconds = 0
+        else:
+            current_time = time.clock()
 
-        time_past = current_time-self.time_start
-        time_left = time_past*self.total_count/self.count-time_past  # Assumes time_past/total_time == count/total_count
+            time_past = current_time-self.time_start
+            time_left = time_past*self.total_count/self.count-time_past  # Assumes time_past/total_time == count/total_count
 
-        time_left = max([time_left, 0])
+            time_left = max([time_left, 0])
 
-        hours = int(time_left/3600)
-        minutes = int((time_left-hours*3600)/60)
-        seconds = int(math.fmod(time_left, 60))
+            hours = int(time_left/3600)
+            minutes = int((time_left-hours*3600)/60)
+            seconds = int(math.fmod(time_left, 60))
 
-        percentage = self.count/self.total_count*100
+            percentage = self.count/self.total_count*100
 
         return percentage, hours, minutes, seconds
 
-    def string(self, count=None, message=''):
+    def string(self, message='', count=None):
+        assert isinstance(count, (type(None), int))
+        assert isinstance(message, str)
 
         if not message:
             message = self.message
@@ -103,20 +116,23 @@ class ProgressTimer(object):
         else:
             percentage, hours, minutes, seconds = self.calculate(count)
 
+        percentage = round(percentage)  # Round so decimals are not just cropped.
+
         time = datetime.datetime.now() + datetime.timedelta(hours=hours, minutes=minutes, seconds=seconds)
         oclock = time.strftime('%H:%M')
 
         return '%(message)s%(percentage)3d%%: ETA in: %(hours)3dh %(minutes)2dm %(seconds)2.0ds (%(oclock)s)' % locals()
 
-    def print(self,count = None, message = ''):
-        print(self.string(count, message))
+    def print(self, message='', count=None):
+        assert isinstance(count, (type(None), int))
+        assert isinstance(message, str)
+        print(self.string(message, count))
 
 
 class SimpleTimer(object):
     def __init__(self, message = ''):
         '''
         Class for simple timing of calls.
-
         '''
         self.time_start = time.clock()
         self.message = message

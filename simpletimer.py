@@ -17,18 +17,15 @@ import math
 import warnings
 
 class ProgressTimer(object):
-    def __init__(self,total_count,message = '', sample_size = None):
-        '''
-        Class for printing percentage progress and completion time estimates.
-
-        '''
+    def __init__(self, total_count, message='', sample_size=None):
+        """Class for printing percentage progress and completion time estimates."""
 
         assert isinstance(total_count, int)
         assert isinstance(sample_size, (type(None), int))
         assert isinstance(message, str)
 
         if sample_size and sample_size/total_count > 0.7 and total_count > 100:
-            warnings.warn('Progress timer sample_size is 0.7 if total item count. Revize for speed.')
+            warnings.warn('Progress timer sample_size is 0.7 if total item count. Revise for speed.')
 
         self.total_count = total_count
         self.message = message
@@ -48,7 +45,12 @@ class ProgressTimer(object):
     def start(self):
         self.time_start = time.clock()
 
-    def calculate_sample(self):
+    def calculate_sample(self, count):
+        assert isinstance(count, (type(None), int))
+        if count is None:
+            self.count += 1
+        else:
+            self.count = count
         self.count += 1
         current_time = time.clock()
 
@@ -130,10 +132,8 @@ class ProgressTimer(object):
 
 
 class SimpleTimer(object):
-    def __init__(self, message = ''):
-        '''
-        Class for simple timing of calls.
-        '''
+    def __init__(self, message=''):
+        """Class for simple timing of calls."""
         self.time_start = time.clock()
         self.message = message
 
@@ -156,8 +156,8 @@ class SimpleTimer(object):
         else:
             return '%f' % checkpoint
 
-    def print(self, message = ''):
-        print(self.represent(message = message))
+    def print(self, message=''):
+        print(self.represent(message=message))
 
 
 if __name__ == '__main__':

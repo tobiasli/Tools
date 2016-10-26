@@ -45,7 +45,7 @@ class TestTregexModule(unittest.TestCase):
         import tregex
 
         for case, type in zip(FIND_TEST_CASES, FIND_TEST_CASES_TYPES):
-            https: // github.com / geopython / OWSLib / issues / 309https://github.com/geopython/OWSLib/issues/309sself.assertTrue(isinstance(tregex.smart(case[0], case[1])[0], type))
+            self.assertTrue(isinstance(tregex.smart(case[0], case[1])[0], type))
 
 def run():
     suite = unittest.TestLoader().loadTestsFromTestCase(TestTregexModule)

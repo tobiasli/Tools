@@ -22,6 +22,7 @@ FIND_TEST_CASES = [
         ('(?P<bogus_named_capture>nisse) \w+ \d fjell','nisse fjes 3 fjell'),
         ('(?i)(nisse) \w+ \d fjell','Nisse FJES 3 fjell'),
         ]
+FIND_TEST_CASES_TYPES = [str, dict, tuple]
 
 GROUP_TEST_CASES = [
         ('(nisse) (\w+) (\d) (fjell)','nisse fjes 3 fjell', ('nisse', 'fjes', '3', 'fjell')),
@@ -39,6 +40,12 @@ class TestTregexModule(unittest.TestCase):
 
         for pattern, candidate, response in GROUP_TEST_CASES:
             self.assertTrue(tregex.find(pattern, candidate), response)
+
+    def test_tregex_smart(self):
+        import tregex
+
+        for case, type in zip(FIND_TEST_CASES, FIND_TEST_CASES_TYPES):
+            https: // github.com / geopython / OWSLib / issues / 309https://github.com/geopython/OWSLib/issues/309sself.assertTrue(isinstance(tregex.smart(case[0], case[1])[0], type))
 
 def run():
     suite = unittest.TestLoader().loadTestsFromTestCase(TestTregexModule)

@@ -18,6 +18,7 @@ import re
 
 sys.path = [os.path.split(os.path.split(os.path.realpath(__file__))[0])[0] + os.path.sep] + sys.path
 
+
 class TestSimpletimerModule(unittest.TestCase):
     def test_SimpleTimer(self):
         import simpletimer
@@ -36,10 +37,8 @@ class TestSimpletimerModule(unittest.TestCase):
 
         for i in range(100):
             time.sleep(0.001)
-            try:
-                self.assertTrue(re.findall('This is a regular test: %3d%%: ETA in' % i, timer.string(count=i)))
-            except:
-                1/0
+            self.assertTrue(re.findall('This is a regular test: %3d%%: ETA in' % i, timer.string(count=i)))
+            print(timer.string('some other message',count=1))
 
         self.assertTrue(re.findall('This is a regular test: %3d%%: ETA in' % 20, timer.string(count=20)))
 

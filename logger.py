@@ -108,9 +108,9 @@ class Log(object):
         if timestamp is None: timestamp = self.timestamp
         self.m.extend([Message(text, timestamp, newLine)])
         if toScreen or self.dynamicPrintToScreen:
-           print(self.m[-1].getMessage(newline = False))
+           print(self.m[-1].getMessage(newline=False))
 
-    def addError(self, text, timestamp=None, newLine=True, toScreen = False):
+    def addError(self, text, timestamp=None, newLine=True, toScreen=False):
         # Add error message to log. Only difference to addMessage is the
         # error = True, but the method is included for readability between
         # errors and messages.
@@ -125,16 +125,16 @@ class Log(object):
         self.m.extend([Message(text, timestamp, newLine, error=True)])
         self.errorCount += 1
         if toScreen or self.dynamicPrintToScreen:
-           print(self.m[-1].getMessage(newline = False))
+           print(self.m[-1].getMessage(newline=False))
 
-    def returnLogAsString(self,title = 'Run log'):
+    def returnLogAsString(self, title='Run log'):
         # Return entire log as text:
         #
         # Input:
         #       title           string, The title of the log.
         return self._compileLogText_(title)
 
-    def printLogToScreen(self,title = 'Run log'):
+    def printLogToScreen(self, title='Run log'):
         # Print complete log to screen.
         #
         # Input:
@@ -142,7 +142,7 @@ class Log(object):
 
         print(self._compileLogText_(title))
 
-    def printLogToFile(self,path,namebase,title = 'Log',completeName = False,errorTag = False):
+    def printLogToFile(self, path: object, namebase: object, title: object = 'Log', completeName: object = False, errorTag: object = False) -> object:
         # Create file. "name" is only the name base. Time stamp and file type are
         # added by the script. If completeName = True, then the filename in
         # "name" is taken as is, without adding timestamp or checking for
@@ -169,12 +169,13 @@ class Log(object):
         if not completeName:
            namebase = self._getFileNameIncrement_(path, namebase)
 
-        self.logFile = open(os.path.join(path, namebase), 'w')
+        self.log_file_path = os.path.join(path, namebase)
+        self.log_file = open(self.log_file_path, 'w')
 
         try:
-            self.logFile.write(self._compileLogText_(title))
+            self.log_file.write(self._compileLogText_(title))
         finally:
-            self.logFile.close()
+            self.log_file.close()
 
 ##    def printLogToMail(self,mailserver, sender, recipient, reply_to, subject, title, attachment = None):
 ##        # Send compiled file with optional attatchments via email to a specified recipient.

@@ -27,7 +27,9 @@ class TestLoggerModule(unittest.TestCase):
 
         for i in range(100):
             log.addMessage('Message nr %d' % i)
+            log.addMessage('Message nr %d without timestamp and not print to screen' % i, toScreen=False, timestamp=False, newLine=False)
             log.addError('Error nr %d' % i)
+            log.addError('Error nr %d without timestamp and not print to screen' % i, toScreen=False, timestamp=False, newLine=False)
 
         self.assertTrue(log.errorCount == 100)
 

@@ -48,7 +48,7 @@ class Message(object):
         self.newline = newline
         self.error = error
 
-    def getMessage(self, newline = None):
+    def getMessage(self, newline=None):
         #Returns all text in message object as one ready formatted string.
         #The newline argument can override the newline of the message object.
         message = ''
@@ -59,7 +59,7 @@ class Message(object):
              message += self._compile_(self.text, newline)
         return message
 
-    def _compile_(self,text, newline = None):
+    def _compile_(self, text, newline=None):
         #Creates a ready formatted print string.
         #text = unicode(text, "UTF-8")
         stamp = ''
@@ -176,62 +176,6 @@ class Log(object):
             self.log_file.write(self._compileLogText_(title))
         finally:
             self.log_file.close()
-
-##    def printLogToMail(self,mailserver, sender, recipient, reply_to, subject, title, attachment = None):
-##        # Send compiled file with optional attatchments via email to a specified recipient.
-##        #
-##        # Input:
-##        #       mailserver        string, The mailserver used for the exchange.
-##        #       sender            string, Account the email is sent from.
-##        #       recipient         string/list,   Who the email is sent to. Can
-##        #                                        be single string or list.
-##        #       reply_to          string, Who to reply to.
-##        #       subject           string, The subject of the email.
-##        #       title             string, The title of the log contained in the
-##        #                                 email body.
-##        #       attachment        string/list, The path to any attachment that
-##        #                                      should be included in the email.
-##        #                                      Single string or list of strings.
-##
-##        msg = MIMEMultipart()
-##
-##        msg['Date'] = formatdate(localtime=True)
-##        msg['From'] = sender
-##        msg['To'] = recipient
-##        msg['Reply-to'] = reply_to
-##        msg['Subject'] = subject
-##
-##        msg.attach(MIMEText(self._compileLogText_(title)))
-##
-##        #Add attachments:
-##        if isinstance(attachment,str):
-##           msg = self._loadAttachment_(msg,attachment)
-##        elif isinstance(attachment,list):
-##             for att in attachment:
-##                 msg = self._loadAttachment_(msg,att)
-##
-##        # Establish an SMTP object and connect to your mail server
-##        s = smtplib.SMTP()
-##        s.connect(mailserver)
-##        # Send the email - real from, real to, extra headers and content ...
-##        a = s.sendmail(sender,recipient.split(','), msg.as_string())
-##        s.close()
-##
-##    def _loadAttachment_(self,msg,attachment):
-##        #Take the file path "attachment" and add content to msg. Requires that
-##        #msg is a multipart MIME object.
-##        part = MIMEBase('application', "octet-stream")
-##
-##        fid = open(attachment,"rb")
-##        try:
-##            part.set_payload(fid.read())
-##
-##            Encoders.encode_base64(part)
-##            part.add_header('Content-Disposition', 'attachment; filename="%s"' % os.path.basename(attachment))
-##            msg.attach(part)
-##        finally:
-##                fid.close()
-##        return msg
 
     def _addTimeStampToFileName_(self,name):
         #Add initialization time stamp to file name:

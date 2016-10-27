@@ -31,7 +31,7 @@ class TestLoggerModule(unittest.TestCase):
             log.addError('Error nr %d' % i)
             log.addError('Error nr %d without timestamp and not print to screen' % i, toScreen=False, timestamp=False, newLine=False)
 
-        self.assertTrue(log.errorCount == 100)
+        self.assertTrue(log.errorCount == 200)
 
         write_path = os.path.dirname(__file__)
         write_name = 'test_log'

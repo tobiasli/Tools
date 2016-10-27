@@ -282,19 +282,3 @@ class Log(object):
             pass
 
         return logText
-
-
-
-if __name__ == '__main__':
-    #Debug test run
-    log = Log()
-    log.addMessage('User = Tobias', timestamp=False)
-    log.addMessage(r', Workspace = C:\Tobias\Prosjekter\RA\KTMS_XML_IMPORT', timestamp=False, newLine=False)
-    log.addMessage('test')
-    log.addMessage('a', timestamp=False)
-    log.addError('b', timestamp=False)
-    log.addError('test')
-    log.addMessage('test')
-    log.addMessage('test', timestamp=False)
-    log.addMessage(['This is a test.', 'A really big test'])
-    log.printLogToScreen('Dette er en ordentlig test.')

@@ -13,7 +13,6 @@ from __future__ import unicode_literals
 import unittest
 import sys
 import os
-import shutil
 
 sys.path = [os.path.split(os.path.split(os.path.realpath(__file__))[0])[0] + os.path.sep] + sys.path
 

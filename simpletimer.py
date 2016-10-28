@@ -18,7 +18,12 @@ import warnings
 
 class ProgressTimer(object):
     def __init__(self, total_count, message='', sample_size=None):
-        """Class for printing percentage progress and completion time estimates."""
+        """Class for printing percentage progress and completion time estimates.
+
+        total_count -- int, the total amount of iterations
+        message -- str, the standard message printed at call to the ProgressTimer
+        sample_size -- int, with a very large iteration set, set a fixed amount of iterations to estimate ETA over.
+        """
 
         assert isinstance(total_count, int)
         assert isinstance(sample_size, (type(None), int))
@@ -42,10 +47,18 @@ class ProgressTimer(object):
     def __str__(self):
         return self.string()
 
-    def start(self):
-        self.time_start = time.clock()
-
     def calculate_sample(self, count):
+        """Return the percentage of completion along with the hours, minutes and seconds until completion. Calculated
+        based on a subset of iterations.
+
+        Based on elapsed time compared to total number of iterations and the executed iterations:
+
+        count/total_count = time_passed/total_time
+        total_time = count/(total_count * time_passed)
+        time_left = total_time - time_passed
+
+        If count is not specified, automatically increment by 1.
+        """
         assert isinstance(count, (type(None), int))
         if count is None:
             self.count += 1
@@ -76,6 +89,17 @@ class ProgressTimer(object):
         return percentage, hours, minutes, seconds
 
     def calculate(self, count=None):
+        """Return the percentage of completion along with the hours, minutes and seconds until completion. Calculated
+        based on all performed iterations.
+
+        Based on elapsed time compared to total number of iterations and the executed iterations:
+
+        count/total_count = time_passed/total_time
+        total_time = count/(total_count * time_passed)
+        time_left = total_time - time_passed
+
+        If count is not passed, automatically increment by 1.
+        """
         assert isinstance(count, (type(None), int))
         if count is None:
             self.count += 1
@@ -104,6 +128,8 @@ class ProgressTimer(object):
         return percentage, hours, minutes, seconds
 
     def string(self, message='', count=None):
+        """Return the string representation of the current progress. If count if not specified, will automatically
+        increment by 1."""
         assert isinstance(count, (type(None), int))
         assert isinstance(message, str)
 
@@ -126,6 +152,8 @@ class ProgressTimer(object):
         return '%(message)s%(percentage)3d%%: ETA in: %(hours)3dh %(minutes)2dm %(seconds)2.0ds (%(oclock)s)' % locals()
 
     def print(self, message='', count=None):
+        """Print the current string representation of progress. If count is not specified, automatically increment by
+        1."""
         assert isinstance(count, (type(None), int))
         assert isinstance(message, str)
         print(self.string(message, count))
@@ -133,7 +161,10 @@ class ProgressTimer(object):
 
 class SimpleTimer(object):
     def __init__(self, message=''):
-        """Class for simple timing of calls."""
+        """Class for simple timing of calls.
+        message -- str, the message accompanying the elapsed time.
+
+        """
         self.time_start = time.clock()
         self.message = message
 

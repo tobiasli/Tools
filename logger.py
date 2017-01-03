@@ -41,12 +41,13 @@ class Message(object):
     # same time stamp. Contains both messages and errors in the same list,
     # separated by the error = True/False value.
 
-    def __init__(self, text, timestamp=True, newline=True, error=False):
+    def __init__(self, text, timestamp=True, newline=True, error=False, warning=False):
         self.time = time.datetime.now()
         self.text = text
         self.timestamp = timestamp
         self.newline = newline
         self.error = error
+        self.warning = warning
 
     def getMessage(self, newline=None):
         #Returns all text in message object as one ready formatted string.
@@ -71,10 +72,12 @@ class Message(object):
             newline = self.newline
         if newline: line = '\n'
 
-        er = ''
-        if self.error: er = 'Error: '
+        assert not (self.error and self.warning)
+        label = ''
+        if self.error: label = 'Error: '
+        if self.warning: label = 'Warning: '
 
-        return '%s%s%s%s' % (line, stamp, er, text)
+        return '%s%s%s%s' % (line, stamp, label, text)
 
 
 class Log(object):
@@ -95,6 +98,7 @@ class Log(object):
         self.dynamicPrintToScreen = dynamicPrintToScreen
         self.timestamp = timestamp
         self.errorCount = 0
+        self.warningCount = 0
 
     def addMessage(self, text, timestamp=None, newLine=True,toScreen = False):
         #Add message to log.
@@ -107,6 +111,23 @@ class Log(object):
         #                                (True), or append to current (False).
         if timestamp is None: timestamp = self.timestamp
         self.m.extend([Message(text, timestamp, newLine)])
+        if toScreen or self.dynamicPrintToScreen:
+           print(self.m[-1].getMessage(newline=False))
+
+    def addWarning(self, text, timestamp=None, newLine=True, toScreen=False):
+        # Add warning message to log. Only difference to addMessage is the
+        # warning = True, but the method is included for readability between
+        # errors, warnings and messages.
+        #
+        # Input:
+        #       text            string, Error message for log. Can be a string
+        #                               or a list of strings.
+        #       timestamp       boolean, Add time stamp to message.
+        #       newLine         boolean, Write message to new line in file
+        #                                (True), or append to current (False).
+        if timestamp is None: timestamp = self.timestamp
+        self.m.extend([Message(text, timestamp, newLine, warning=True)])
+        self.warningCount += 1
         if toScreen or self.dynamicPrintToScreen:
            print(self.m[-1].getMessage(newline=False))
 
@@ -142,7 +163,7 @@ class Log(object):
 
         print(self._compileLogText_(title))
 
-    def printLogToFile(self, path: object, namebase: object, title: object = 'Log', completeName: object = False, errorTag: object = False) -> object:
+    def printLogToFile(self, path, namebase, title='Log', completeName=False, errorTag=False):
         # Create file. "name" is only the name base. Time stamp and file type are
         # added by the script. If completeName = True, then the filename in
         # "name" is taken as is, without adding timestamp or checking for
@@ -217,7 +238,8 @@ class Log(object):
 
         #Complete file, aka add summery text:
         logText += '\n\nRun complete.'
-        logText += '\nNumber of error messages logged: %d' % len([message for message in self.m if message.error])
+        logText += '\nNumber of warning messages logged: %d' % self.warningCount
+        logText += '\nNumber of error messages logged: %d' % self.errorCount
         logText += '\nEnd of file.'
 
         try:

@@ -24,13 +24,16 @@ class TestLoggerModule(unittest.TestCase):
         log = logger.Log(dynamicPrintToScreen=True, timestamp=True)
 
 
-        for i in range(100):
+        for i in range(10):
             log.addMessage('Message nr %d' % i)
             log.addMessage('Message nr %d without timestamp and not print to screen' % i, toScreen=False, timestamp=False, newLine=False)
             log.addError('Error nr %d' % i)
             log.addError('Error nr %d without timestamp and not print to screen' % i, toScreen=False, timestamp=False, newLine=False)
+            log.addWarning('Warning nr %d' % i)
+            log.addWarning('Warning nr %d without timestamp and not print to screen' % i, toScreen=False, timestamp=False, newLine=False)
 
-        self.assertTrue(log.errorCount == 200)
+        self.assertTrue(log.errorCount == 20)
+        self.assertTrue(log.warningCount == 20)
 
         write_path = os.path.dirname(__file__)
         write_name = 'test_log'

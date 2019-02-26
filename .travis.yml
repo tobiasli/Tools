@@ -2,15 +2,11 @@ language: python
 python:
     - "3.6"
 before_install:
-    - pip install pytest pytest-cov
+    - pip install pytest
 install:
   - pip install pytest
-  - pip install coveralls
 script:
     - py.test
-    - coverage run run_tests.py
-after_success:
-  - coveralls  # Upload results to coveralls
 
 notifications:
     email: True

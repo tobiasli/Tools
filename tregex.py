@@ -1,34 +1,93 @@
-﻿"""
--------------------------------------------------------------------------------
+r"""
  Name:        tregex
  Purpose:     Wrapper that makes my everyday use of regex much smoother.
 
- Author:      Tobias Litherland
-
- Created:     10.04.2015
- Copyright:   (c) Tobias Litherland 2015
-
- GitHub:      https://github.com/tobiasli/Tools
--------------------------------------------------------------------------------
+ >>> from statkraft.aqua.domain.utilities import tregex
+ >>> string = 'jens.stoltenberg@norge.no; barack.obama@usa.com'
+ >>> pattern = r'(?P<first_name>\w+)\.(?P<last_name>\w+)@(?P<hostname>\w+)\.(?P<domain>\w+)'
+ >>>
+ >>> match = tregex.to_object(pattern, string)
+ >>> assert match
+ >>> jens = match[0]
+ >>> obama = match[1]
+ >>> assert jens.first_name == 'jens'
+ >>> assert obama.last_name == 'obama'
+ >>> assert jens.hostname == 'norge'
 """
+
+__author__ = "Tobias Litherland"
+__email__ = 'tobias.litherland@statkraft.com'
 
 import re
 import difflib
+from typing import Union, List, Dict, Tuple, Iterable
 
+NUMBER = Union[int, float]
 DEFAULT_FLAG = re.UNICODE | re.DOTALL
-NAMED_GROUP_DETECTION = '(\(\?P<\w+>)'
-NAMED_GROUP_REFERANCE_DETECTION = '\(\?\(\w+\)'
+NAMED_GROUP_DETECTION = r'(\(\?P<\w+>)'
+NAMED_GROUP_REFERENCE_DETECTION = r'\(\?\(\w+\)'
 DEFAULT_SEARCH_SCORE_CUTOFF = 0.6
 CONTENT_MATCH_DEFAULT_SCORE = 0.01
 
 
-class UnknownMethodError(Exception):
+class TregexUnknownMethodError(Exception):
     pass
 
 
-def _process(pattern, string, output='smart', flags=DEFAULT_FLAG):
-    # Returns the named groups from a pattern match directly, insted of going
-    # through the regular parsing.
+class TregexMismatchError(Exception):
+    pass
+
+
+class GenericPropertyClass:
+    """Class for containing a dictionary and presenting its contents as properties of the class."""
+
+    def __init__(self, **kwargs) -> None:
+        self.dict = kwargs
+
+    def __getattr__(self, item) -> object:
+        if item not in self.dict:
+            raise AttributeError(f'Attribute {item} not present in GenericPropertyClass.')
+        return self.dict[item]
+
+    def __bool__(self) -> bool:
+        return bool(self.dict)
+
+    def __repr__(self) -> str:
+        return str(self)
+
+    def __str__(self) -> str:
+        arg_pairs = [f"{k}={repr(v)}" for k, v in self.dict.items()]
+        return f'{GenericPropertyClass.__name__}({", ".join(arg_pairs)})'
+
+    def __dir__(self) -> Iterable:
+        return list(self.dict.keys())
+
+    def __eq__(self, other) -> bool:
+        return self.dict == other.dict
+
+
+def _process(pattern: str, string: str, output='smart', flags: re.RegexFlag = DEFAULT_FLAG) \
+        -> List[Union[Tuple[str], Dict[str, str], str]]:
+    """Compile and run a regular expression and posprocess the results depending of the [output].
+
+    Args:
+        pattern: The pattern string for the regex.
+        string: The string being matched with the pattern.
+        output: Which post procesing to run on the output, se Below.
+        flags: The input arguments for the regex parse. Defaults to re.UNICODE | re.DOTALL.
+
+    Returns:
+        '': Assumes simple match, and returns a list of matching pattern in string.
+        'group': Assumes capture groups, and returns a list of tuples for each pattern group for each pattern match.
+        'name': Assumes named capture groups in pattern, and returns a list of dictionaries matching the named groups.
+        'smart': Scans the pattern for named groups, groups or nothing, and returns the appropriate structure.
+
+    Raises:
+        TregexUnknownMethodError when arg 'output' does not match any output type.
+    """
+
+    # Todo: Precompile the pattern so that we don't have to compile at every call.
+
     r = re.compile(pattern, flags)
     result = [found for found in r.finditer(string)]
     if result:
@@ -52,80 +111,122 @@ def _process(pattern, string, output='smart', flags=DEFAULT_FLAG):
             for m in result:
                 return_list += [m.groups()]
         else:
-            raise UnknownMethodError("Unknown method {} for argument 'output'.".format(output))
+            raise TregexUnknownMethodError("Unknown method {} for argument 'output'.".format(output))
 
         return return_list
     else:
         return []
 
 
-def name(pattern, string, flags=DEFAULT_FLAG):
+def to_dict(pattern: str, string: str, flags: re.RegexFlag = DEFAULT_FLAG) -> List[Dict]:
+    """Identifies named capture groups in pattern, and outputs matches as a list of dictionaries with named capture
+    groups as keys."""
+
     return _process(pattern, string, output='name', flags=flags)
 
 
-def match(pattern, string, flags=DEFAULT_FLAG):
-    # Only return strings matching pattern, not considering any grouping. Will
-    # remove any named groups from pattern before compiling.
-    pattern = re.sub(NAMED_GROUP_DETECTION, '(', pattern)  # Remove named groups.
-    pattern = re.sub(NAMED_GROUP_REFERANCE_DETECTION, '(', pattern)  # Remove named groups.
+def to_object(pattern: str, string: str, flags: re.RegexFlag = DEFAULT_FLAG) -> List[GenericPropertyClass]:
+    """Identifies named capture groups in pattern, and outputs matches as a list of objects with named capture groups as
+    properties."""
+    result = _process(pattern, string, output='name', flags=flags)
+    return [GenericPropertyClass(**dictionary) for dictionary in result]
+
+
+def match(pattern: str, string: str, flags: re.RegexFlag = DEFAULT_FLAG) -> List[str]:
+    """Returns the string if it matches. will remove any named groups from pattern
+    before compiling."""
+
+    pattern = re.sub(NAMED_GROUP_DETECTION, '(', pattern)  # Remove regular groups.
+    pattern = re.sub(NAMED_GROUP_REFERENCE_DETECTION, '(', pattern)  # Remove named groups.
     return _process(pattern, string, output='', flags=flags)
 
 
-def group(pattern, string, flags=DEFAULT_FLAG):
-    # Only return strings matching groups. Will remove any named groups from
-    # pattern before compiling.
+def to_tuple(pattern: str, string: str, flags: re.RegexFlag = DEFAULT_FLAG) -> List[Tuple[str]]:
+    """Identifies capture groups in pattern, and outputs matches as a list of tuples of strings matching the pattern."""
 
     pattern = re.sub(NAMED_GROUP_DETECTION, '(', pattern)  # Remove named groups.
     return _process(pattern, string, output='group', flags=flags)
 
 
-def smart(pattern, string, flags=DEFAULT_FLAG):
+def smart(pattern: str, string: str, flags: re.RegexFlag = DEFAULT_FLAG)\
+        -> List[Union[Tuple[str], Dict[str, str], str]]:
+    """Identifies properties of the pattern, and outputs matches as a list of
+    objects based on the properties of the pattern:
+        capture groups => List of tuples.
+        named capture groups  => List of dictionaries.
+        no groups => List of strings
+    """
+
     return _process(pattern, string, output='smart', flags=flags)
 
 
-def similarity(string1, string2):
-    # Returns a score based on the degree of match between to strings:
+def similarity(string1: str, string2: str) -> float:
+    """Returns a score based on the degree of match between string1 and string2. Is vulnerable for string length, as it 
+    will punish a difference in length harshly even if string1 is a subset of string2 or vice versa."""
+
     return difflib.SequenceMatcher(None, string1, string2).ratio()
 
 
-def find_best(search_string, search_list, score_cutoff=0, case_sensitive=False, return_scores=False):
-    """Fuzzy name search from a list of strings.
+def find_best(search_string, search_list, score_cutoff=0, case_sensitive=False):
+    """Fuzzy name search from a list of strings using tregex.similarity().
 
     Args:
-        search_string (str): The string used to find a sufficient match in the search_list.
-        search_list (list): A list of strings where we search for one or more matches.
-        score_cutoff (int): The score cutoff of the results
-        case_sensitive (bool): Specify if search is case sensitive or not.
-        return_scores (bool): Return tuples with matches and scores instead if just matches.
+        search_string: The string used to find a sufficient match in the search_list.
+        search_list: A list of strings where we search for one or more matches.
+        score_cutoff: The score cutoff of the results
+        case_sensitive: Specify if search is case sensitive or not.
 
 
     Returns:
         Returns the best match from the search_list
     """
+
     result = find(search_string=search_string,
                   search_list=search_list,
                   score_cutoff=score_cutoff,
-                  case_sensitive=case_sensitive,
-                  scores=return_scores)
+                  case_sensitive=case_sensitive
+                  )
     if result:
         return result[0]
     else:
         return None
 
 
-def find(search_string, search_list, score_cutoff=DEFAULT_SEARCH_SCORE_CUTOFF, case_sensitive=False, scores=False):
-    """Fuzzy name search from a list of strings.
+def find(search_string: str, search_list: Iterable[str], score_cutoff: NUMBER = DEFAULT_SEARCH_SCORE_CUTOFF,
+         case_sensitive: bool = False) -> List[str]:
+    """Fuzzy name search from a list of strings using tregex.similarity().
 
     Args:
-        search_string (str): The string used to find a sufficient match in the search_list.
-        search_list (list): A list of strings where we search for one or more matches.
-        score_cutoff (float): The score cutoff of the results
-        case_sensitive (bool): Specify if search is case sensitive or not.
-        scores (bool): Return tuples with matches and scores instead if just matches.
+        search_string: The string used to find a sufficient match in the search_list.
+        search_list: A list of strings where we search for one or more matches.
+        score_cutoff: The score cutoff of the results
+        case_sensitive: Specify if search is case sensitive or not.
 
 
     Returns:
-        Returns a list of items that sufficiently match the search_string
+        Returns a list of matching items for each item in search list with a score above score_cutoff, sorted by score.
+    """
+
+    result = find_scores(search_string=search_string, search_list=search_list, score_cutoff=score_cutoff,
+                         case_sensitive=case_sensitive)
+
+    return [item[1] for item in result]
+
+
+def find_scores(search_string: str, search_list: Iterable[str], score_cutoff: NUMBER = DEFAULT_SEARCH_SCORE_CUTOFF,
+                case_sensitive: bool = False) -> List[Tuple[float, str]]:
+    """Fuzzy name search from a list of strings using tregex.similarity().
+
+    Args:
+        search_string: The string used to find a sufficient match in the search_list.
+        search_list: A list of strings where we search for one or more matches.
+        score_cutoff: The score cutoff of the results
+        case_sensitive: Specify if search is case sensitive or not.
+
+
+    Returns:
+        Returns a list of tuples containing matching items (score, match) for each item in search list with a score
+        above score_cutoff, sorted by score.
     """
 
     if not case_sensitive:
@@ -149,9 +250,6 @@ def find(search_string, search_list, score_cutoff=DEFAULT_SEARCH_SCORE_CUTOFF, c
     result = scores_sorted + [(CONTENT_MATCH_DEFAULT_SCORE, item) for item in contains_sorted]
 
     if not result:
-        return []
+        result = []
 
-    if scores:
-        return result
-    else:
-        return [item[1] for item in result]
+    return result

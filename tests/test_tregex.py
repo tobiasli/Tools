@@ -4,7 +4,7 @@ Tests copied and structured from https://github.com/tobiasli/Tools
 
 import pytest
 
-from statkraft.aqua.domain.utilities import tregex
+import tregex
 
 FIND_TEST_CASES = [
     (r'nisse \w+ \d fjell', 'nisse fjes 3 fjell'),

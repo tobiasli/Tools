@@ -5,18 +5,6 @@
 
 Suite of tools for making my Python-day easier.
 
-### tregex
-Wrapper around the re-module, making my primary use of regex a lot smoother. Primary functions:
-
-<b>smart</b>: Takes a pattern and a string, and returns:
-- a list of dictionaries if match and named groups are present in pattern.
-- a list of tuples if match and groups are present in pattern.
-- a string if match and no capture groups are present in pattern.
-
-If the user has a pattern with named groups, but only wants a simple match, <b>find</b> will only return the matched string. If the user has a pattern with named groups, but only wants group match, <b>group</b> will only return the grouped tuples.
-
-<b>similarity</b>: Takes two strings and returns a score based on how similar the two strings are. Uses difflib.
-
 ### simpletimer
 Two simple timer classes that can print the time to see how fast any process is running.
 

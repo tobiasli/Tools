@@ -14,8 +14,10 @@ import unittest
 import sys
 import os
 import time
+import re
 
 sys.path = [os.path.split(os.path.split(os.path.realpath(__file__))[0])[0] + os.path.sep] + sys.path
+
 
 class TestSimpletimerModule(unittest.TestCase):
     def test_SimpleTimer(self):
@@ -35,9 +37,10 @@ class TestSimpletimerModule(unittest.TestCase):
 
         for i in range(100):
             time.sleep(0.001)
-            self.assertTrue(timer.string(), result_frame % i)
+            self.assertTrue(re.findall('This is a regular test: %3d%%: ETA in' % i, timer.string(count=i)))
+            print(timer.string('some other message',count=1))
 
-        self.assertTrue(timer.string(20), result_frame % 20)
+        self.assertTrue(re.findall('This is a regular test: %3d%%: ETA in' % 20, timer.string(count=20)))
 
 def run():
     suite = unittest.TestLoader().loadTestsFromTestCase(TestSimpletimerModule)

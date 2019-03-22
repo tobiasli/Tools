@@ -1,18 +1,15 @@
 ﻿# -*- coding: utf-8 -*-
 '''
 -------------------------------------------------------------------------------
-Name:        logFile
+Name:        logger
 Purpose:     Class for the handling of errors and messages. Contains methods
              for printing messages to file, screen, and send via email.
              Important to have the print to file/screen/email command within
              a try/finally clause to make sure that errors are returned before
              the program shuts down.
-
 Author:      tobiasl
-
 Created:     26.03.2014
 Copyright:   (c) tobiasl 2014
-
 --- History:
 2014.03.27 TL    First stable version. Further updates should include classes
                  to export messages to various formats. First off is .txt.
@@ -25,6 +22,7 @@ Copyright:   (c) tobiasl 2014
 2014.10.23 TL    Added error tag to printFile. If ther are errors, and errorTag
                  equals True, then the file name is appended with '_error' (before
                  numbering indexes).
+
 -------------------------------------------------------------------------------
 '''
 
@@ -43,43 +41,50 @@ class Message(object):
     # same time stamp. Contains both messages and errors in the same list,
     # separated by the error = True/False value.
 
-    def __init__(self, text, timestamp=True, newline=True, error=False):
+    def __init__(self, text, timestamp=True, newline=True, error=False, warning=False):
         self.time = time.datetime.now()
         self.text = text
         self.timestamp = timestamp
         self.newline = newline
         self.error = error
+        self.warning = warning
 
-    def getMessage(self):
+    def getMessage(self, newline=None):
         #Returns all text in message object as one ready formatted string.
+        #The newline argument can override the newline of the message object.
         message = ''
         if isinstance(self.text,list):
            for text in self.text:
-               message += self._compile_(text)
+               message += self._compile_(text, newline)
         else:
-             message += self._compile_(self.text)
+             message += self._compile_(self.text, newline)
         return message
 
-    def _compile_(self,text):
+    def _compile_(self, text, newline=None):
         #Creates a ready formatted print string.
         #text = unicode(text, "UTF-8")
         stamp = ''
-        if self.timestamp: stamp = '%s - ' % self.time.strftime('%Y.%m.%d %H:%M:%S')
+        if self.timestamp: stamp = '%s-' % self.time.strftime('%Y.%m.%d %H:%M:%S')
 
         line = ''
-        if self.newline: line = '\n'
 
-        er = ''
-        if self.error: er = 'Error: '
+        if isinstance(newline,type(None)):
+            newline = self.newline
+        if newline: line = '\n'
 
-        return '%s%s%s%s' % (line, stamp, er, text)
+        assert not (self.error and self.warning)
+        label = ''
+        if self.error: label = 'Error: '
+        if self.warning: label = 'Warning: '
+
+        return '%s%s%s%s' % (line, stamp, label, text)
 
 
 class Log(object):
     #Creates a logfile instance that handles messages and can store them in a
     #text file.
 
-    def __init__(self,dynamicPrintToScreen = False):
+    def __init__(self,dynamicPrintToScreen = False, timestamp = True):
         #File is the base name of the log file. The name will have a timestamp
         #appended, and the name will be incremented if there are several log
         #files with the same timestamp.
@@ -91,9 +96,11 @@ class Log(object):
         self.m = []  #List of Message objects.
         self.init = time.datetime.now()
         self.dynamicPrintToScreen = dynamicPrintToScreen
+        self.timestamp = timestamp
         self.errorCount = 0
+        self.warningCount = 0
 
-    def addMessage(self, text, timestamp=True, newLine=True,toScreen = False):
+    def addMessage(self, text, timestamp=None, newLine=True,toScreen = False):
         #Add message to log.
         #
         # Input:
@@ -102,12 +109,29 @@ class Log(object):
         #       timestamp       boolean, Add time stamp to message.
         #       newLine         boolean, Write message to new line in file
         #                                (True), or append to current (False).
-
+        if timestamp is None: timestamp = self.timestamp
         self.m.extend([Message(text, timestamp, newLine)])
         if toScreen or self.dynamicPrintToScreen:
-           print(self.m[-1].getMessage())
+           print(self.m[-1].getMessage(newline=False))
 
-    def addError(self, text, timestamp=True, newLine=True, toScreen = False):
+    def addWarning(self, text, timestamp=None, newLine=True, toScreen=False):
+        # Add warning message to log. Only difference to addMessage is the
+        # warning = True, but the method is included for readability between
+        # errors, warnings and messages.
+        #
+        # Input:
+        #       text            string, Error message for log. Can be a string
+        #                               or a list of strings.
+        #       timestamp       boolean, Add time stamp to message.
+        #       newLine         boolean, Write message to new line in file
+        #                                (True), or append to current (False).
+        if timestamp is None: timestamp = self.timestamp
+        self.m.extend([Message(text, timestamp, newLine, warning=True)])
+        self.warningCount += 1
+        if toScreen or self.dynamicPrintToScreen:
+           print(self.m[-1].getMessage(newline=False))
+
+    def addError(self, text, timestamp=None, newLine=True, toScreen=False):
         # Add error message to log. Only difference to addMessage is the
         # error = True, but the method is included for readability between
         # errors and messages.
@@ -118,13 +142,20 @@ class Log(object):
         #       timestamp       boolean, Add time stamp to message.
         #       newLine         boolean, Write message to new line in file
         #                                (True), or append to current (False).
-
+        if timestamp is None: timestamp = self.timestamp
         self.m.extend([Message(text, timestamp, newLine, error=True)])
         self.errorCount += 1
         if toScreen or self.dynamicPrintToScreen:
-           print(self.m[-1].getMessage())
+           print(self.m[-1].getMessage(newline=False))
 
-    def printLogToScreen(self,title = 'Run log'):
+    def returnLogAsString(self, title='Run log'):
+        # Return entire log as text:
+        #
+        # Input:
+        #       title           string, The title of the log.
+        return self._compileLogText_(title)
+
+    def printLogToScreen(self, title='Run log'):
         # Print complete log to screen.
         #
         # Input:
@@ -132,7 +163,7 @@ class Log(object):
 
         print(self._compileLogText_(title))
 
-    def printLogToFile(self,path,namebase,title = 'Log',completeName = False,errorTag = False):
+    def printLogToFile(self, path, namebase, title='Log', completeName=False, errorTag=False):
         # Create file. "name" is only the name base. Time stamp and file type are
         # added by the script. If completeName = True, then the filename in
         # "name" is taken as is, without adding timestamp or checking for
@@ -159,68 +190,13 @@ class Log(object):
         if not completeName:
            namebase = self._getFileNameIncrement_(path, namebase)
 
-        self.logFile = open(os.path.join(path, namebase), 'w')
+        self.log_file_path = os.path.join(path, namebase)
+        self.log_file = open(self.log_file_path, 'w')
 
         try:
-            self.logFile.write(self._compileLogText_(title))
+            self.log_file.write(self._compileLogText_(title))
         finally:
-            self.logFile.close()
-
-##    def printLogToMail(self,mailserver, sender, recipient, reply_to, subject, title, attachment = None):
-##        # Send compiled file with optional attatchments via email to a specified recipient.
-##        #
-##        # Input:
-##        #       mailserver        string, The mailserver used for the exchange.
-##        #       sender            string, Account the email is sent from.
-##        #       recipient         string/list,   Who the email is sent to. Can
-##        #                                        be single string or list.
-##        #       reply_to          string, Who to reply to.
-##        #       subject           string, The subject of the email.
-##        #       title             string, The title of the log contained in the
-##        #                                 email body.
-##        #       attachment        string/list, The path to any attachment that
-##        #                                      should be included in the email.
-##        #                                      Single string or list of strings.
-##
-##        msg = MIMEMultipart()
-##
-##        msg['Date'] = formatdate(localtime=True)
-##        msg['From'] = sender
-##        msg['To'] = recipient
-##        msg['Reply-to'] = reply_to
-##        msg['Subject'] = subject
-##
-##        msg.attach(MIMEText(self._compileLogText_(title)))
-##
-##        #Add attachments:
-##        if isinstance(attachment,str):
-##           msg = self._loadAttachment_(msg,attachment)
-##        elif isinstance(attachment,list):
-##             for att in attachment:
-##                 msg = self._loadAttachment_(msg,att)
-##
-##        # Establish an SMTP object and connect to your mail server
-##        s = smtplib.SMTP()
-##        s.connect(mailserver)
-##        # Send the email - real from, real to, extra headers and content ...
-##        a = s.sendmail(sender,recipient.split(','), msg.as_string())
-##        s.close()
-##
-##    def _loadAttachment_(self,msg,attachment):
-##        #Take the file path "attachment" and add content to msg. Requires that
-##        #msg is a multipart MIME object.
-##        part = MIMEBase('application', "octet-stream")
-##
-##        fid = open(attachment,"rb")
-##        try:
-##            part.set_payload(fid.read())
-##
-##            Encoders.encode_base64(part)
-##            part.add_header('Content-Disposition', 'attachment; filename="%s"' % os.path.basename(attachment))
-##            msg.attach(part)
-##        finally:
-##                fid.close()
-##        return msg
+            self.log_file.close()
 
     def _addTimeStampToFileName_(self,name):
         #Add initialization time stamp to file name:
@@ -262,7 +238,8 @@ class Log(object):
 
         #Complete file, aka add summery text:
         logText += '\n\nRun complete.'
-        logText += '\nNumber of error messages logged: %d' % len([message for message in self.m if message.error])
+        logText += '\nNumber of warning messages logged: %d' % self.warningCount
+        logText += '\nNumber of error messages logged: %d' % self.errorCount
         logText += '\nEnd of file.'
 
         try:
@@ -271,20 +248,3 @@ class Log(object):
             pass
 
         return logText
-
-
-
-if __name__ == '__main__':
-    #Debug test run
-    log = Log()
-    log.addMessage('User = Tobias', timestamp=False)
-    log.addMessage(r', Workspace = C:\Tobias\Prosjekter\RA\KTMS_XML_IMPORT', timestamp=False, newLine=False)
-    log.addMessage('test')
-    log.addMessage('a', timestamp=False)
-    log.addError('b', timestamp=False)
-    log.addError('test')
-    log.addMessage('test')
-    log.addMessage('test', timestamp=False)
-    log.addMessage(['This is a test.', 'A really big test'])
-    log.printLogToScreen('Dette er en ordentlig test.')
-
